@@ -1,0 +1,7 @@
+data/*
+!data/get_data.txt
+*.pyc
+tensorboard/*
+.idea/
+output/
+

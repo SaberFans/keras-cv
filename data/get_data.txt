@@ -1,0 +1,3 @@
+Add the tiny-imagenet dataset here. Structure should be data/tiny-imagenet-200/train/...
+
+http://cs231n.stanford.edu/tiny-imagenet-200.zip
