@@ -35,7 +35,7 @@ def create_lava_model(input_shape):
     model = Sequential([
         # first conv layer
         Conv2D(96, kernel_size=3, strides=(2, 2), input_shape=input_shape,
-               activation='relu'),
+               activation='relu'),  #, padding='valid'
         MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
         BatchNormalization(),
 
@@ -45,9 +45,9 @@ def create_lava_model(input_shape):
         BatchNormalization(),
 
         # 3-5 conv layers
-        Conv2D(384, kernel_size=3, strides=(1, 1), activation='relu', padding='valid'),
-        Conv2D(384, kerner_size=3, strides=(1, 1), activation='relu', padding='valid'),
-        Conv2D(256, kerner_size=3, strides=(1, 1), activation='relu', padding='valid'),
+        Conv2D(384, kernel_size=3, activation='relu'),
+        Conv2D(384, kerner_size=3, activation='relu'),
+        Conv2D(256, kerner_size=3, activation='relu'),
         MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
         BatchNormalization(),
         # Fully connected layer
