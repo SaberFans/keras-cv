@@ -32,7 +32,7 @@ def main(data_dir, model_name):
     model = Sequential()
     # first conv layer,
     # 64*64*3
-    model.add(Conv2D(32, 3, padding='same', input_shape=[img_width, img_height, 3]))
+    model.add(Conv2D(32, 3, input_shape=[img_width, img_height, 3]))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -40,29 +40,30 @@ def main(data_dir, model_name):
     # second conv layer
     model.add(Conv2D(64, 5))
     model.add(BatchNormalization())
+    model.add(Dropout(0.5))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # third conv layer
-    model.add(Conv2D(128, 3, padding='same'))
+    model.add(Conv2D(128, 3))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    # fourth conv layer
-    model.add(Conv2D(256, 3, padding='same'))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+    # # fourth conv layer
+    # model.add(Conv2D(256, 3))
+    # model.add(BatchNormalization())
+    # model.add(Activation('relu'))
+    # model.add(MaxPooling2D(pool_size=(2, 2)))
 
     model.add(Flatten())
 
-    model.add(Dense(4096))
+    model.add(Dense(512))
     model.add(Dropout(0.5))
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
 
-    model.add(Dense(2048))
+    model.add(Dense(512))
     model.add(Dropout(0.5))
     model.add(Activation('relu'))
 
