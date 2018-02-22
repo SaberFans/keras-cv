@@ -45,9 +45,9 @@ def create_lava_model(input_shape):
         BatchNormalization(),
 
         # 3-5 conv layers
-        Conv2D(384, kernel_size=(3, 3), strides=1, activation='relu', padding='valid'),
-        Conv2D(384, kerner_size=(3, 3), strides=1, activation='relu', padding='valid'),
-        Conv2D(256, kerner_size=(3, 3), strides=1, activation='relu', padding='valid'),
+        Conv2D(384, kernel_size=(3, 3), strides=(1, 1), activation='relu', padding='valid'),
+        Conv2D(384, kerner_size=(3, 3), strides=(1, 1), activation='relu', padding='valid'),
+        Conv2D(256, kerner_size=(3, 3), strides=(1, 1), activation='relu', padding='valid'),
         MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
         BatchNormalization(),
         # Fully connected layer
@@ -64,7 +64,7 @@ def create_lava_model(input_shape):
 
 def main(data_dir, model_name):
 
-    model = create_lava_model(input_shape=(img_height, img_width))
+    model = create_lava_model(input_shape=(img_height, img_width, 3))
     # print model structure
     model.summary()
 
