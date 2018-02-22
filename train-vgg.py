@@ -33,7 +33,7 @@ def main(data_dir, model_name):
     vgg_model = applications.VGG16(weights=None, include_top=False)
     vgg_model.summary()
 
-    input = Input(shape=(3, 224, 224), name='image_input')
+    input = Input(shape=(224, 224, 3), name='image_input')
     output_vgg16_conv = vgg_model(input)
 
     # Add the fully-connected layers
@@ -46,7 +46,7 @@ def main(data_dir, model_name):
     my_model.summary()
 
     vgg_model = my_model
-    
+
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
 
