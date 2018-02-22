@@ -8,7 +8,9 @@ from __future__ import print_function
 import argparse
 
 import keras
+import time
 from keras import applications, Input, Model
+from keras.callbacks import TensorBoard
 from keras.layers import Flatten, Dense
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
@@ -81,6 +83,8 @@ def main(data_dir, model_name, pretrain=None):
     # Compute quantities required for feature-wise normalization
     # (std, mean, and principal components if ZCA whitening is applied).
     # train_datagen.fit(x_train)
+    now = time.strftime("%c")
+    run_name = model_name + now
 
     res50_model.fit_generator(
         train_generator,
@@ -88,7 +92,8 @@ def main(data_dir, model_name, pretrain=None):
         epochs=epochs,
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
-        workers=4)
+        workers=4,
+        callbacks=TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size))
 
     # Save model and weights
     if not os.path.isdir(save_dir):
@@ -116,7 +121,7 @@ if __name__ == '__main__':
                         default='data/tiny-imagenet-200',
                         help='Directory in which the input data is stored.')
     parser.add_argument('--name', type=str,
-                        default='alex',
+                        default='res50',
                         help='Name of this training run. Will store results in output/[name]')
     parser.add_argument('--pretrain', type=str,
                         help='Name of this training run. Will store results in output/[name]')

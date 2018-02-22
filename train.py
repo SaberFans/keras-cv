@@ -121,7 +121,7 @@ def main(data_dir, model_name):
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
         workers=4,
-        callbacks=TensorBoard(log_dir='./logs/'+run_name, histogram_freq=0, batch_size=32))
+        callbacks=TensorBoard(log_dir='./logs/'+run_name, histogram_freq=0, batch_size=batch_size))
 
     # persist the training data
     save(history, model_name)
