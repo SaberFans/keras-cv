@@ -47,13 +47,13 @@ def get_data(data_dir, hdf5):
             from tflearn.data_utils import build_hdf5_image_dataset
 
             print("Creating hdf5 train datasets.")
-            build_hdf5_image_dataset(train_file, image_shape=(256, 256), mode='file',
+            build_hdf5_image_dataset(train_file, image_shape=(64, 64), mode='file',
                                      output_path=output_path1, categorical_labels=True, normalize=True)
 
         if not os.path.exists(output_path2):
             from tflearn.data_utils import build_hdf5_image_dataset
             print("Creating hdf5 val datasets.")
-            build_hdf5_image_dataset(val_file, image_shape=(256, 256), mode='file',
+            build_hdf5_image_dataset(val_file, image_shape=(64, 64), mode='file',
                                      output_path=output_path2, categorical_labels=True, normalize=True)
 
         # Load training data from hdf5 datasets.
@@ -135,8 +135,8 @@ def main(data_dir, hdf5):
 
     x_train = x_train.astype('float32')
     x_test = x_test.astype('float32')
-    x_train /= 255
-    x_test /= 255
+    # x_train /= 255
+    # x_test /= 255
 
     if not data_augmentation:
         print('Not using data augmentation.')
