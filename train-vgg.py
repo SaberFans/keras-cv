@@ -23,14 +23,14 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
-img_width, img_height = 256, 256
+img_width, img_height = 224, 224
 
 
 def main(data_dir, model_name):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
 
-    vgg_model = applications.VGG16(weights='None', include_top=False, input_shape=(img_width, img_height, 3))
+    vgg_model = applications.VGG16(weights=None, include_top=False, input_shape=(img_width, img_height, 3))
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)

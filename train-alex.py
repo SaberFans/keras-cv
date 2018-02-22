@@ -27,7 +27,7 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
-img_width, img_height = 256, 256
+img_width, img_height = 224, 224
 
 
 def main(data_dir, model_name):
@@ -35,7 +35,7 @@ def main(data_dir, model_name):
     # input image is 224x224
 
     model = Sequential()
-    model.add(Convolution2D(64, 3, 11, 11, border_mode='full'))
+    model.add(Convolution2D(64, 3, 11, 11, input_shape=[img_width, img_height, 3], border_mode='full'))
     model.add(BatchNormalization((64, 226, 226)))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(poolsize=(3, 3)))
