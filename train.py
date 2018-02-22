@@ -90,7 +90,6 @@ def main(data_dir, model_name):
     model.fit_generator(
         train_generator,
         steps_per_epoch=2000,
-        batch_size=batch_size,
         epochs=epochs,
         validation_data=validation_generator,
         validation_steps=sample_size / batch_size,
