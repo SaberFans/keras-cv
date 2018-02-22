@@ -26,11 +26,16 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 img_width, img_height = 224, 224
 
-def main(data_dir, model_name):
+def main(data_dir, model_name, pretrain=None):
+    # AlexNet with batch normalization in Keras
+    # input image is 224x224
+    if pretrain == 'yes':
+        pretrain = 'imagenet'
+
     # AlexNet with batch normalization in Keras
     # input image is 224x224
 
-    vgg_model = applications.VGG16(weights=None, include_top=False)
+    vgg_model = applications.VGG16(weights=pretrain, include_top=False)
     vgg_model.summary()
     vgg_input = Input(shape=(224, 224, 3), name='image_input')
     output_vgg16_conv = vgg_model(vgg_input)

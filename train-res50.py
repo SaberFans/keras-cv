@@ -27,13 +27,13 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 img_width, img_height = 224, 224
 
 
-def main(data_dir, model_name, pretrained=None):
+def main(data_dir, model_name, pretrain=None):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
-    if pretrained == 'yes':
-        pretrained = 'imagenet'
+    if pretrain == 'yes':
+        pretrain = 'imagenet'
 
-    res50_model = applications.ResNet50(weights=pretrained, include_top=False, input_shape=(img_width, img_height, 3))
+    res50_model = applications.ResNet50(weights=pretrain, include_top=False, input_shape=(img_width, img_height, 3))
     res50_model.summary()
 
     res50_input = Input(shape=(224, 224, 3), name='image_input')
@@ -123,4 +123,4 @@ if __name__ == '__main__':
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
 
-    main(args.data_dir, args.name, args.pretrained)
+    main(args.data_dir, args.name, args.pretrain)
