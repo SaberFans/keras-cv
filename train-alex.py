@@ -9,6 +9,7 @@ import keras
 
 from keras.layers.convolutional import Convolution2D
 from keras.layers.normalization import BatchNormalization
+from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
@@ -67,11 +68,15 @@ def main(data_dir, model_name):
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+    adam = keras.optimizers.adam(lr=0.001)
+
+    def top_5_accuracy(y_true, y_pred):
+        return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
     model.compile(loss='categorical_crossentropy',
-                  optimizer=opt,
-                  metrics=['accuracy'])
+                  optimizer=adam,
+                  metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
@@ -92,13 +97,13 @@ def main(data_dir, model_name):
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
         target_size=(img_width, img_height),
-        batch_size=32,
+        batch_size=batch_size,
         class_mode='categorical')
 
     validation_generator = test_datagen.flow_from_directory(
         data_dir + '/val',
         target_size=(img_width, img_height),
-        batch_size=32,
+        batch_size=batch_size,
         class_mode='categorical')
 
     # Compute quantities required for feature-wise normalization
@@ -107,11 +112,11 @@ def main(data_dir, model_name):
 
     model.fit_generator(
         train_generator,
-        steps_per_epoch=2000,
+        steps_per_epoch=sample_size // batch_size,
         epochs=epochs,
         validation_data=validation_generator,
-        validation_steps=sample_size / batch_size,
-        workers=8)
+        validation_steps=sample_size // batch_size,
+        workers=4)
 
     # Save model and weights
     if not os.path.isdir(save_dir):
@@ -125,7 +130,7 @@ def main(data_dir, model_name):
     score = model.evaluate_generator(
         validation_generator,
         steps=validation_sample_size / batch_size,
-        workers=8)
+        workers=4)
 
     print(score)
     print('Test loss:', score[0])
