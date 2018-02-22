@@ -63,7 +63,6 @@ def create_simple_model(input_shape):
     model.add(Dropout(0.5))
 
     # Second fully connected layer. 32x32x32 -> 1x32768 -> 1x4096. ReLU activation.
-    model.add(Flatten())
     model.add(Dense(4096))
     model.add(Activation('relu'))
 
