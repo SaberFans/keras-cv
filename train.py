@@ -25,36 +25,43 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
-img_width, img_height = 32, 32
+img_width, img_height = 256, 256
 
 def main(data_dir, model_name):
 
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same', input_shape=[img_width, img_height, 3], data_format="channels_last"))
-    model.add(Activation('relu'))
-    model.add(Conv2D(32, (3, 3)))
+    model.add(Conv2D(32, 3, padding='same', input_shape=[img_width, img_height, 3]))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.5))
 
-    model.add(Conv2D(64, (3, 3), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3)))
+    model.add(Conv2D(32, 3, padding='same',))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.5))
+
+    model.add(Conv2D(64, 3, padding='same'))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))
+
+    model.add(Conv2D(64, 3))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.5))
 
     model.add(Flatten())
-    model.add(Dense(512))
+
+    model.add(Dense(2048))
+
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
+
     model.add(Dense(num_classes))
     model.add(Activation('softmax'))
 
-    model.summary()
-
     # initiate RMSprop optimizer
-    opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+    opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
 
     def top_5_accuracy(y_true, y_pred):
@@ -76,8 +83,8 @@ def main(data_dir, model_name):
         width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
         height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
         horizontal_flip=True,  # randomly flip images
-        vertical_flip=False,   # randomly flip images
-        rescale=1./255)
+        vertical_flip=False,
+        rescale=1./255)     # randomly flip images
 
     val_datagen = ImageDataGenerator(rescale=1. / 255)
 
@@ -99,7 +106,8 @@ def main(data_dir, model_name):
 
     history = model.fit_generator(
         train_generator,
-        steps_per_epoch=train_generator.n // train_generator.batch_size,
+        # steps_per_epoch=train_generator.n // train_generator.batch_size,
+        steps_per_epoch= 100,
         epochs=epochs,
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
