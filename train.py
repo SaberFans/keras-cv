@@ -40,7 +40,6 @@ def main(data_dir, model_name):
     # second conv layer
     model.add(Conv2D(64, 5))
     model.add(BatchNormalization())
-    model.add(Dropout(0.5))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -74,7 +73,7 @@ def main(data_dir, model_name):
     model.summary()
     # visualize
     from keras.utils import plot_model
-    plot_model(model, to_file=model_name+'.png')
+    plot_model(model, to_file=model_name + '.png')
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
@@ -92,17 +91,29 @@ def main(data_dir, model_name):
     train_datagen = ImageDataGenerator(
         featurewise_center=False,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=False,  # divide inputs by std of the dataset
-        samplewise_std_normalization=False,  # divide each input by its std
+        featurewise_std_normalization=True,  # divide inputs by std of the dataset
+        samplewise_std_normalization=True,  # divide each input by its std
         zca_whitening=False,  # apply ZCA whitening
         rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
         width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
         height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
         horizontal_flip=True,  # randomly flip images
-        vertical_flip=False,
+        vertical_flip=True,
         rescale=1. / 255)  # randomly flip images
 
-    val_datagen = ImageDataGenerator(rescale=1. / 255)
+    val_datagen = ImageDataGenerator(featurewise_center=False,  # set input mean to 0 over the dataset
+                                     samplewise_center=False,  # set each sample mean to 0
+                                     featurewise_std_normalization=True,  # divide inputs by std of the dataset
+                                     samplewise_std_normalization=True,  # divide each input by its std
+                                     zca_whitening=False,  # apply ZCA whitening
+                                     rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+                                     width_shift_range=0.1,
+                                     # randomly shift images horizontally (fraction of total width)
+                                     height_shift_range=0.1,
+                                     # randomly shift images vertically (fraction of total height)
+                                     horizontal_flip=True,  # randomly flip images
+                                     vertical_flip=True,
+                                     rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
