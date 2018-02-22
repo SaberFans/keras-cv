@@ -7,6 +7,9 @@ from __future__ import print_function
 import keras
 import pickle
 
+import time
+
+from keras.callbacks import TensorBoard
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -78,42 +81,19 @@ def main(data_dir, model_name):
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
+    sgd = keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer=opt,
+                  optimizer=sgd,
                   metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
-    train_datagen = ImageDataGenerator(
-        featurewise_center=False,  # set input mean to 0 over the dataset
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=True,  # divide inputs by std of the dataset
-        samplewise_std_normalization=True,  # divide each input by its std
-        zca_whitening=False,  # apply ZCA whitening
-        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
-        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
-        horizontal_flip=True,  # randomly flip images
-        vertical_flip=True,
-        rescale=1. / 255)  # randomly flip images
-
-    val_datagen = ImageDataGenerator(featurewise_center=False,  # set input mean to 0 over the dataset
-                                     samplewise_center=False,  # set each sample mean to 0
-                                     featurewise_std_normalization=True,  # divide inputs by std of the dataset
-                                     samplewise_std_normalization=True,  # divide each input by its std
-                                     zca_whitening=False,  # apply ZCA whitening
-                                     rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-                                     width_shift_range=0.1,
-                                     # randomly shift images horizontally (fraction of total width)
-                                     height_shift_range=0.1,
-                                     # randomly shift images vertically (fraction of total height)
-                                     horizontal_flip=True,  # randomly flip images
-                                     vertical_flip=True,
-                                     rescale=1. / 255)
+    train_datagen = ImageDataGenerator(rescale=1. / 255)  # normalize the grb value
+    val_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
@@ -131,13 +111,17 @@ def main(data_dir, model_name):
     # (std, mean, and principal components if ZCA whitening is applied).
     # train_datagen.fit(x_train)
 
+    now = time.strftime("%c")
+    run_name = model_name + now
+
     history = model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
-        workers=4)
+        workers=4,
+        callbacks=TensorBoard(log_dir='./logs/'+run_name, histogram_freq=0, batch_size=32))
 
     # persist the training data
     save(history, model_name)
