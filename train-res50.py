@@ -35,12 +35,13 @@ def main(data_dir, model_name):
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
 
-
+    def top_5_accuracy(y_true, y_pred):
+        return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
     res50_model.compile(loss='categorical_crossentropy',
                   optimizer=adam,
-                  metrics=['accuracy', top_k_categorical_accuracy])
+                  metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:

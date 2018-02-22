@@ -25,9 +25,10 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
-img_width, img_height = 256, 256
+img_width, img_height = 32, 32
 
 def main(data_dir, model_name):
+
     model = Sequential()
     model.add(Conv2D(32, (3, 3), padding='same', input_shape=[img_width, img_height, 3]))
     model.add(Activation('relu'))
