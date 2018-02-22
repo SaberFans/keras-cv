@@ -76,6 +76,8 @@ def main(data_dir, model_name):
     # (std, mean, and principal components if ZCA whitening is applied).
     # train_datagen.fit(x_train)
 
+    print(train_generator.n // train_generator.batch_size)
+    print("---------")
     vgg_model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
