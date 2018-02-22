@@ -6,10 +6,11 @@ It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
 from __future__ import print_function
 
 import argparse
+import time
 
 import keras
-import time
-from keras import applications, metrics, Input, Model
+from keras import applications, Input, Model
+from keras.callbacks import TensorBoard
 from keras.layers import Flatten, Dense
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
@@ -26,6 +27,7 @@ validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 img_width, img_height = 224, 224
+
 
 def main(data_dir, model_name, pretrain=None):
     # AlexNet with batch normalization in Keras
@@ -61,8 +63,8 @@ def main(data_dir, model_name, pretrain=None):
 
     # Let's train the model using RMSprop
     vgg_model.compile(loss='categorical_crossentropy',
-                  optimizer=opt,
-                  metrics=['accuracy', top_5_accuracy])
+                      optimizer=opt,
+                      metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
@@ -92,7 +94,7 @@ def main(data_dir, model_name, pretrain=None):
 
     now = time.strftime("%c")
     run_name = model_name + now
-
+    tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
     vgg_model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
@@ -100,7 +102,7 @@ def main(data_dir, model_name, pretrain=None):
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
         workers=4,
-        callbacks=TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size))
+        callbacks=[tensorbd])
     # Save model and weights
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
