@@ -20,7 +20,7 @@ from datasets.tiny_imagenet import *
 batch_size = 32
 num_classes = 200
 # epochs = 100
-epochs = 10
+epochs = 100
 sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')

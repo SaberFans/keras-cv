@@ -8,7 +8,8 @@ from __future__ import print_function
 import argparse
 
 import keras
-from keras import applications
+from keras import applications, Input, Model
+from keras.layers import Flatten, Dense
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -18,18 +19,35 @@ from datasets.tiny_imagenet import *
 batch_size = 32
 num_classes = 200
 # epochs = 100
-epochs = 10
+epochs = 50
 sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 img_width, img_height = 224, 224
 
-def main(data_dir, model_name):
+
+def main(data_dir, model_name, pretrained=None):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
+    if pretrained == 'yes':
+        pretrained = 'imagenet'
 
-    res50_model = applications.ResNet50(weights=None, include_top=False, input_shape=(img_width, img_height, 3))
+    res50_model = applications.ResNet50(weights=pretrained, include_top=False, input_shape=(img_width, img_height, 3))
+    res50_model.summary()
+
+    res50_input = Input(shape=(224, 224, 3), name='image_input')
+    output_res50_conv = res50_model(res50_input)
+
+    # Add the fully-connected layers
+    x = Flatten(name='flatten')(output_res50_conv)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dense(4096, activation='relu', name='fc2')(x)
+    x = Dense(num_classes, activation='softmax', name='predictions')(x)
+    # Create your own model
+    my_model = Model(input=res50_input, output=x)
+    my_model.summary()
+    res50_model = my_model
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
@@ -40,23 +58,12 @@ def main(data_dir, model_name):
 
     # Let's train the model using RMSprop
     res50_model.compile(loss='categorical_crossentropy',
-                  optimizer=adam,
-                  metrics=['accuracy', top_5_accuracy])
+                        optimizer=adam,
+                        metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
-    # This will do preprocessing and realtime data augmentation:
-    train_datagen = ImageDataGenerator(
-        featurewise_center=False,  # set input mean to 0 over the datasets
-        samplewise_center=False,  # set each sample mean to 0
-        featurewise_std_normalization=False,  # divide inputs by std of the datasets
-        samplewise_std_normalization=False,  # divide each input by its std
-        zca_whitening=False,  # apply ZCA whitening
-        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
-        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
-        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
-        horizontal_flip=True,  # randomly flip images
-        vertical_flip=False,  # randomly flip images
-        rescale=1. / 255)  # normalize the grb value
+
+    train_datagen = ImageDataGenerator(rescale=1. / 255)  # normalize the grb value
     test_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
@@ -111,6 +118,9 @@ if __name__ == '__main__':
     parser.add_argument('--name', type=str,
                         default='alex',
                         help='Name of this training run. Will store results in output/[name]')
+    parser.add_argument('--pretrain', type=str,
+                        default='false',
+                        help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
 
-    main(args.data_dir, args.name)
+    main(args.data_dir, args.name, args.pretrained)
