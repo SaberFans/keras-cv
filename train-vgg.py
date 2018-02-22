@@ -76,7 +76,7 @@ def main(data_dir, model_name, pretrain=None):
         class_mode='categorical')
 
     validation_generator = test_datagen.flow_from_directory(
-        data_dir + '/val',
+        data_dir + '/val/images',
         target_size=(img_width, img_height),
         batch_size=batch_size,
         save_format='JPEG',
@@ -129,4 +129,4 @@ if __name__ == '__main__':
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
 
-    main(args.data_dir, args.name, args.pretrained)
+    main(args.data_dir, args.name, args.pretrain)
