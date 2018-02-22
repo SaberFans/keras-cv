@@ -8,7 +8,8 @@ from __future__ import print_function
 import argparse
 
 import keras
-from keras import applications, metrics
+from keras import applications, metrics, Input, Model
+from keras.layers import Flatten, Dense
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -29,8 +30,23 @@ def main(data_dir, model_name):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
 
-    vgg_model = applications.VGG16(weights=None, include_top=False, input_shape=(img_width, img_height, 3))
+    vgg_model = applications.VGG16(weights=None, include_top=False)
+    vgg_model.summary()
 
+    input = Input(shape=(3, 224, 224), name='image_input')
+    output_vgg16_conv = vgg_model(input)
+
+    # Add the fully-connected layers
+    x = Flatten(name='flatten')(output_vgg16_conv)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dense(4096, activation='relu', name='fc2')(x)
+    x = Dense(num_classes, activation='softmax', name='predictions')(x)
+    # Create your own model
+    my_model = Model(input=input, output=x)
+    my_model.summary()
+
+    vgg_model = my_model
+    
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
 
