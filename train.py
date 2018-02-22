@@ -25,7 +25,7 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
-img_width, img_height = 256, 256
+img_width, img_height = 32, 32
 
 def main(data_dir, model_name):
 
@@ -106,8 +106,7 @@ def main(data_dir, model_name):
 
     history = model.fit_generator(
         train_generator,
-        # steps_per_epoch=train_generator.n // train_generator.batch_size,
-        steps_per_epoch= 100,
+        steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
