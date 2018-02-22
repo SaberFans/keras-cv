@@ -76,10 +76,10 @@ def main(data_dir, model_name):
 
     vgg_model.fit_generator(
         train_generator,
-        steps_per_epoch=sample_size // batch_size,
+        steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
         validation_data=validation_generator,
-        validation_steps=sample_size // batch_size,
+        validation_steps=train_generator.n // train_generator.batch_size,
         workers=4)
 
     # Save model and weights
