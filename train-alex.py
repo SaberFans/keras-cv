@@ -5,10 +5,14 @@ It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
 
 from __future__ import print_function
 import keras
+
+
+from keras.layers.convolutional import Convolution2D
+from keras.layers.normalization import BatchNormalization
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Dense, Activation, Flatten
+from keras.layers import MaxPooling2D
 
 import argparse
 from datasets.tiny_imagenet import *
@@ -24,27 +28,41 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 img_width, img_height = 256, 256
 
-def main(data_dir, model_name):
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same', input_shape=[img_width, img_height, 3]))
-    model.add(Activation('relu'))
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
 
-    model.add(Conv2D(64, (3, 3), padding='same'))
+def main(data_dir, model_name):
+    # AlexNet with batch normalization in Keras
+    # input image is 224x224
+
+    model = Sequential()
+    model.add(Convolution2D(64, 3, 11, 11, border_mode='full'))
+    model.add(BatchNormalization((64, 226, 226)))
     model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3)))
+    model.add(MaxPooling2D(poolsize=(3, 3)))
+
+    model.add(Convolution2D(128, 64, 7, 7, border_mode='full'))
+    model.add(BatchNormalization((128, 115, 115)))
     model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(MaxPooling2D(poolsize=(3, 3)))
+
+    model.add(Convolution2D(192, 128, 3, 3, border_mode='full'))
+    model.add(BatchNormalization((128, 112, 112)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(poolsize=(3, 3)))
+
+    model.add(Convolution2D(256, 192, 3, 3, border_mode='full'))
+    model.add(BatchNormalization((128, 108, 108)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(poolsize=(3, 3)))
 
     model.add(Flatten())
-    model.add(Dense(512))
+    model.add(Dense(12 * 12 * 256, 4096, init='normal'))
+    model.add(BatchNormalization(4096))
     model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(num_classes))
+    model.add(Dense(4096, 4096, init='normal'))
+    model.add(BatchNormalization(4096))
+    model.add(Activation('relu'))
+    model.add(Dense(4096, 1000, init='normal'))
+    model.add(BatchNormalization(1000))
     model.add(Activation('softmax'))
 
     # initiate RMSprop optimizer
@@ -73,13 +91,13 @@ def main(data_dir, model_name):
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
-        target_size=(img_width, img_width),
+        target_size=(img_width, img_height),
         batch_size=32,
         class_mode='categorical')
 
     validation_generator = test_datagen.flow_from_directory(
         data_dir + '/val',
-        target_size=(150, 150),
+        target_size=(img_width, img_height),
         batch_size=32,
         class_mode='categorical')
 
@@ -121,7 +139,7 @@ if __name__ == '__main__':
                         default='data/tiny-imagenet-200',
                         help='Directory in which the input data is stored.')
     parser.add_argument('--name', type=str,
-                        default='kerasexample',
+                        default='alex',
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
 
