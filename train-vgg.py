@@ -33,19 +33,19 @@ def main(data_dir, model_name):
     vgg_model = applications.VGG16(weights=None, include_top=False)
     vgg_model.summary()
 
-    input = Input(shape=(224, 224, 3), name='image_input')
-    output_vgg16_conv = vgg_model(input)
+    # input = Input(shape=(224, 224, 3), name='image_input')
+    # output_vgg16_conv = vgg_model(input)
+    #
+    # # Add the fully-connected layers
+    # x = Flatten(name='flatten')(output_vgg16_conv)
+    # x = Dense(4096, activation='relu', name='fc1')(x)
+    # x = Dense(4096, activation='relu', name='fc2')(x)
+    # x = Dense(num_classes, activation='softmax', name='predictions')(x)
+    # # Create your own model
+    # my_model = Model(input=input, output=x)
+    # my_model.summary()
 
-    # Add the fully-connected layers
-    x = Flatten(name='flatten')(output_vgg16_conv)
-    x = Dense(4096, activation='relu', name='fc1')(x)
-    x = Dense(4096, activation='relu', name='fc2')(x)
-    x = Dense(num_classes, activation='softmax', name='predictions')(x)
-    # Create your own model
-    my_model = Model(input=input, output=x)
-    my_model.summary()
-
-    vgg_model = my_model
+    # vgg_model = my_model
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)

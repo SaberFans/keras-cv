@@ -66,7 +66,7 @@ def main(data_dir, model_name):
         class_mode='categorical')
 
     validation_generator = test_datagen.flow_from_directory(
-        data_dir + '/val',
+        data_dir + '/val/images',
         target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='categorical')

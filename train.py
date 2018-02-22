@@ -25,17 +25,17 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 
-img_width, img_height = 32, 32
+img_width, img_height = 64, 64
+
 
 def main(data_dir, model_name):
-
     model = Sequential()
     model.add(Conv2D(32, 3, padding='same', input_shape=[img_width, img_height, 3]))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.5))
 
-    model.add(Conv2D(32, 3, padding='same',))
+    model.add(Conv2D(32, 3, padding='same', ))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.5))
@@ -45,7 +45,7 @@ def main(data_dir, model_name):
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.5))
 
-    model.add(Conv2D(64, 3))
+    model.add(Conv2D(64, 3, padding='same'))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.5))
@@ -53,7 +53,6 @@ def main(data_dir, model_name):
     model.add(Flatten())
 
     model.add(Dense(2048))
-
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
 
@@ -84,7 +83,7 @@ def main(data_dir, model_name):
         height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
         horizontal_flip=True,  # randomly flip images
         vertical_flip=False,
-        rescale=1./255)     # randomly flip images
+        rescale=1. / 255)  # randomly flip images
 
     val_datagen = ImageDataGenerator(rescale=1. / 255)
 
