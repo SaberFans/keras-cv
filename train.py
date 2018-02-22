@@ -31,49 +31,43 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 img_width, img_height = 64, 64
 
 
+def create_lava_model(input_shape):
+    model = Sequential([
+        # first conv layer
+        Conv2D(96, kernel_size=(3, 3), strides=(2, 2), input_shape=input_shape,
+               activation='relu'),
+        MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
+        BatchNormalization(),
+
+        # second conv layer
+        Conv2D(256, kernel_size=(3, 3), activation='relu'),
+        MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
+        BatchNormalization(),
+
+        # 3-5 conv layers
+        Conv2D(384, kernel_size=(3, 3), strides=1, activation='relu', padding='valid'),
+        Conv2D(384, kerner_size=(3, 3), strides=1, activation='relu', padding='valid'),
+        Conv2D(256, kerner_size=(3, 3), strides=1, activation='relu', padding='valid'),
+        MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
+        BatchNormalization(),
+        # Fully connected layer
+        Flatten(),
+        Dense(4096, activation='relu'),
+        Dropout(0.5),
+        Dense(4096, activation='relu'),
+        Dropout(0.5),
+        Dense(200, activation='softmax')
+    ])
+
+    return model
+
+
 def main(data_dir, model_name):
-    model = Sequential()
-    # first conv layer,
-    # 64*64*3
-    model.add(Conv2D(32, 3, input_shape=[img_width, img_height, 3]))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    # second conv layer
-    model.add(Conv2D(64, 5))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    # third conv layer
-    model.add(Conv2D(128, 3))
-    model.add(BatchNormalization())
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    # # fourth conv layer
-    # model.add(Conv2D(256, 3))
-    # model.add(BatchNormalization())
-    # model.add(Activation('relu'))
-    # model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Flatten())
-
-    model.add(Dense(512))
-    model.add(Dropout(0.5))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-
-    model.add(Dense(512))
-    model.add(Dropout(0.5))
-    model.add(Activation('relu'))
-
-    model.add(Dense(num_classes))
-
-    model.add(Activation('softmax'))
-
+    model = create_lava_model(input_shape=(img_height, img_width))
+    # print model structure
     model.summary()
+
     # visualize
     from keras.utils import plot_model
     plot_model(model, to_file=model_name + '.png')
@@ -81,19 +75,24 @@ def main(data_dir, model_name):
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
-    sgd = keras.optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    sgd = keras.optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer=sgd,
+                  optimizer='rmsprop', # use rmsprop optimizer
                   metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
-    train_datagen = ImageDataGenerator(rescale=1. / 255)  # normalize the grb value
-    val_datagen = ImageDataGenerator(rescale=1. / 255)
+    train_datagen = ImageDataGenerator(
+        rescale=1./255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)
+
+    val_datagen = ImageDataGenerator(rescale=1./255)
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
@@ -113,7 +112,7 @@ def main(data_dir, model_name):
 
     now = time.strftime("%c")
     run_name = model_name + now
-    tensorbd = TensorBoard(log_dir='./logs/'+run_name, histogram_freq=0, batch_size=batch_size)
+    tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
     history = model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
