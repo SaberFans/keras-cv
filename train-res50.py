@@ -5,14 +5,14 @@ It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
 
 from __future__ import print_function
 import keras
-
+from keras import applications
 
 from keras.layers.convolutional import Convolution2D
 from keras.layers.normalization import BatchNormalization
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten
+from keras.layers import Dense, Activation, Flatten, Conv2D
 from keras.layers import MaxPooling2D
 
 import argparse
@@ -34,37 +34,7 @@ def main(data_dir, model_name):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
 
-    model = Sequential()
-    model.add(Convolution2D(64, 3, 11, 11, input_shape=[img_width, img_height, 3], border_mode='full'))
-    model.add(BatchNormalization((64, 226, 226)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(poolsize=(3, 3)))
-
-    model.add(Convolution2D(128, 64, 7, 7, border_mode='full'))
-    model.add(BatchNormalization((128, 115, 115)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(poolsize=(3, 3)))
-
-    model.add(Convolution2D(192, 128, 3, 3, border_mode='full'))
-    model.add(BatchNormalization((128, 112, 112)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(poolsize=(3, 3)))
-
-    model.add(Convolution2D(256, 192, 3, 3, border_mode='full'))
-    model.add(BatchNormalization((128, 108, 108)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(poolsize=(3, 3)))
-
-    model.add(Flatten())
-    model.add(Dense(12 * 12 * 256, 4096, init='normal'))
-    model.add(BatchNormalization(4096))
-    model.add(Activation('relu'))
-    model.add(Dense(4096, 4096, init='normal'))
-    model.add(BatchNormalization(4096))
-    model.add(Activation('relu'))
-    model.add(Dense(4096, 1000, init='normal'))
-    model.add(BatchNormalization(1000))
-    model.add(Activation('softmax'))
+    res50_model = applications.ResNet50(weights=None, include_top=False, input_shape=(img_width, img_height, 3))
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
@@ -74,7 +44,7 @@ def main(data_dir, model_name):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
-    model.compile(loss='categorical_crossentropy',
+    res50_model.compile(loss='categorical_crossentropy',
                   optimizer=adam,
                   metrics=['accuracy', top_5_accuracy])
 
@@ -110,7 +80,7 @@ def main(data_dir, model_name):
     # (std, mean, and principal components if ZCA whitening is applied).
     # train_datagen.fit(x_train)
 
-    model.fit_generator(
+    res50_model.fit_generator(
         train_generator,
         steps_per_epoch=sample_size // batch_size,
         epochs=epochs,
@@ -123,11 +93,11 @@ def main(data_dir, model_name):
         os.makedirs(save_dir)
 
     model_path = os.path.join(save_dir, model_name + '.h5')
-    model.save(model_path)
+    res50_model.save(model_path)
     print('Saved trained model at %s ' % model_path)
 
     # Score trained model.
-    score = model.evaluate_generator(
+    score = res50_model.evaluate_generator(
         validation_generator,
         steps=validation_sample_size / batch_size,
         workers=4)
