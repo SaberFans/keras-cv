@@ -51,6 +51,8 @@ def main(data_dir, model_name):
     model.add(Dense(num_classes))
     model.add(Activation('softmax'))
 
+    model.summary()
+
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)

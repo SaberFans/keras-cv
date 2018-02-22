@@ -56,7 +56,7 @@ def main(data_dir, model_name):
     # Let's train the model using RMSprop
     vgg_model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
-                  metrics=['accuracy'])
+                  metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
