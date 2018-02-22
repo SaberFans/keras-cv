@@ -30,7 +30,7 @@ img_width, img_height = 32, 32
 def main(data_dir, model_name):
 
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same', input_shape=[img_width, img_height, 3]))
+    model.add(Conv2D(32, (3, 3), padding='same', input_shape=[img_width, img_height, 3], data_format="channels_last"))
     model.add(Activation('relu'))
     model.add(Conv2D(32, (3, 3)))
     model.add(Activation('relu'))
@@ -60,7 +60,7 @@ def main(data_dir, model_name):
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
-    model.compile(loss='sparse_categorical_crossentropy',
+    model.compile(loss='categorical_crossentropy',
                   optimizer=adam,
                   metrics=['accuracy', top_5_accuracy])
 
