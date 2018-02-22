@@ -33,21 +33,30 @@ img_width, img_height = 64, 64
 
 def create_lava_model(input_shape):
     model = Sequential([
-        # first conv layer
+        #1 first conv layer
         Conv2D(96, kernel_size=3, strides=(2, 2), input_shape=input_shape,
                activation='relu'),  #, padding='valid'
+        # (64-3)/2 +1 = 51*51*96
+
+        MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
+        # (51-3)/2 + 1 = 20
+        BatchNormalization(),
+        # 20*20*96
+        #2 second conv layer
+        Conv2D(256, kernel_size=5, activation='relu'),
+        # (20-5+2)/1 + 1 = 17*17*256
         MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
         BatchNormalization(),
 
-        # second conv layer
-        Conv2D(256, kernel_size=3, activation='relu'),
-        MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
-        BatchNormalization(),
+        #3 conv layers
+        Conv2D(384, kernel_size=(3, 3), strides=(1,1), activation='relu', padding='valid'),
 
-        # 3-5 conv layers
+        #4 conv layers
         Conv2D(384, kernel_size=(3, 3), strides=(1,1), activation='relu', padding='valid'),
-        Conv2D(384, kernel_size=(3, 3), strides=(1,1), activation='relu', padding='valid'),
-        Conv2D(256, kernel_size=(3, 3), strides=(1,1), activation='relu', padding='valid'),
+
+        # #5 conv layers
+        # Conv2D(256, kernel_size=(3, 3), strides=(1,1), activation='relu', padding='valid'),
+
         MaxPooling2D(pool_size=(3, 3), strides=(2, 2)),
         BatchNormalization(),
         # Fully connected layer
