@@ -38,7 +38,7 @@ def main(data_dir, model_name):
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # second conv layer
-    model.add(Conv2D(64, 5, padding='same'))
+    model.add(Conv2D(64, 5))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -83,7 +83,7 @@ def main(data_dir, model_name):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer=adam,
+                  optimizer=opt,
                   metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
