@@ -32,7 +32,7 @@ def main(data_dir, model_name):
     model = Sequential()
     # first conv layer,
     # 64*64*3
-    model.add(Conv2D(32, 3, padding='valid', input_shape=[img_width, img_height, 3]))
+    model.add(Conv2D(32, 3, padding='same', input_shape=[img_width, img_height, 3]))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))

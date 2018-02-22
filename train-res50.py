@@ -119,7 +119,6 @@ if __name__ == '__main__':
                         default='alex',
                         help='Name of this training run. Will store results in output/[name]')
     parser.add_argument('--pretrain', type=str,
-                        default='false',
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
 
