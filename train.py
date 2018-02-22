@@ -31,6 +31,41 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 img_width, img_height = 64, 64
 
 
+def create_simple_model(input_shape):
+    model = Sequential()
+    model.add(Conv2D(32, (5, 5), input_shape=input_shape, padding='same'))
+    model.add(Activation('relu'))
+    # First batch normalization layer
+    model.add(BatchNormalization())
+    # Pooling layer. 64x64x32 -> 32x32x32
+    model.add(MaxPooling2D((2, 2), 1, padding='same'))
+
+    # Second convolution layer. 32 filters of size 5. Activation function ReLU. 32x32x32 -> 32x32x32
+    model.add(Conv2D(32, (5, 5), input_shape=input_shape, padding='same'))
+    model.add(Activation('relu'))
+
+    # Second batch normalization layer
+    model.add(BatchNormalization())
+
+    # First fully connected layer. 32x32x32 -> 1x32768 -> 1x1024. ReLU activation.
+    model.add(Flatten())
+    model.add(Dense(1024))
+    model.add(Activation('relu'))
+
+    # Third batch normalization layer
+    # Second batch normalization layer
+    model.add(BatchNormalization())
+
+    # Dropout layer for the first fully connected layer.
+    model.add(Dropout(0.5))
+
+    # Second fully connected layer. 1x1024 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
+    model.add(Dense(200))
+    model.add(Activation('softmax'))
+
+    return model
+
+
 def create_lava_model(input_shape):
     model = Sequential()
     model.add(Conv2D(32, (3, 3), input_shape=input_shape))
@@ -94,8 +129,7 @@ def create_lava_model(input_shape):
 
 
 def main(data_dir, model_name):
-
-    model = create_lava_model(input_shape=(img_height, img_width, 3))
+    model = create_simple_model(input_shape=(img_height, img_width, 3))
     # print model structure
     model.summary()
 
@@ -112,18 +146,18 @@ def main(data_dir, model_name):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     model.compile(loss='categorical_crossentropy',
-                  optimizer='rmsprop', # use rmsprop optimizer
+                  optimizer='rmsprop',  # use rmsprop optimizer
                   metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
     train_datagen = ImageDataGenerator(
-        rescale=1./255,
+        rescale=1. / 255,
         shear_range=0.2,
         zoom_range=0.2,
         horizontal_flip=True)
 
-    val_datagen = ImageDataGenerator(rescale=1./255)
+    val_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
