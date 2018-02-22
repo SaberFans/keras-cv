@@ -20,7 +20,7 @@ from datasets.tiny_imagenet import *
 batch_size = 32
 num_classes = 200
 # epochs = 100
-epochs = 100
+epochs = 50
 sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models')
@@ -38,19 +38,19 @@ def main(data_dir, model_name):
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # second conv layer
-    model.add(Conv2D(64, 5, padding='valid'))
+    model.add(Conv2D(64, 5, padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # third conv layer
-    model.add(Conv2D(96, 3, padding='valid'))
+    model.add(Conv2D(128, 3, padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # fourth conv layer
-    model.add(Conv2D(256, 3, padding='valid'))
+    model.add(Conv2D(256, 3, padding='same'))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
@@ -65,13 +65,16 @@ def main(data_dir, model_name):
     model.add(Dense(2048))
     model.add(Dropout(0.5))
     model.add(Activation('relu'))
-    model.add(Dropout(0.5))
 
     model.add(Dense(num_classes))
 
     model.add(Activation('softmax'))
 
     model.summary()
+    # visualize
+    from keras.utils import plot_model
+    plot_model(model, to_file=model_name+'.png')
+
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
