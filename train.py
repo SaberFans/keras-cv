@@ -10,7 +10,7 @@ import pickle
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.layers import Dense, Dropout, Activation, Flatten
+from keras.layers import Dense, Dropout, Activation, Flatten, BatchNormalization
 from keras.layers import Conv2D, MaxPooling2D
 
 import argparse
@@ -30,35 +30,48 @@ img_width, img_height = 64, 64
 
 def main(data_dir, model_name):
     model = Sequential()
-    model.add(Conv2D(32, 3, padding='same', input_shape=[img_width, img_height, 3]))
+    # first conv layer,
+    # 64*64*3
+    model.add(Conv2D(32, 3, padding='valid', input_shape=[img_width, img_height, 3]))
+    model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
 
-    model.add(Conv2D(32, 3, padding='same', ))
+    # second conv layer
+    model.add(Conv2D(64, 5, padding='valid'))
+    model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
 
-    model.add(Conv2D(64, 3, padding='same'))
+    # third conv layer
+    model.add(Conv2D(96, 3, padding='valid'))
+    model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
 
-    model.add(Conv2D(64, 3, padding='same'))
+    # fourth conv layer
+    model.add(Conv2D(256, 3, padding='valid'))
+    model.add(BatchNormalization())
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.5))
 
     model.add(Flatten())
 
+    model.add(Dense(4096))
+    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+
     model.add(Dense(2048))
+    model.add(Dropout(0.5))
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
 
     model.add(Dense(num_classes))
+
     model.add(Activation('softmax'))
 
+    model.summary()
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
