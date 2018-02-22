@@ -4,18 +4,14 @@ It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
 '''
 
 from __future__ import print_function
-import keras
-from keras import applications
-
-from keras.layers.convolutional import Convolution2D
-from keras.layers.normalization import BatchNormalization
-from keras.metrics import top_k_categorical_accuracy
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.layers import Dense, Activation, Flatten, Conv2D
-from keras.layers import MaxPooling2D
 
 import argparse
+
+import keras
+from keras import applications
+from keras.metrics import top_k_categorical_accuracy
+from keras.preprocessing.image import ImageDataGenerator
+
 from datasets.tiny_imagenet import *
 
 # Initial Settings
@@ -29,7 +25,6 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 img_width, img_height = 224, 224
 
-
 def main(data_dir, model_name):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
@@ -40,13 +35,12 @@ def main(data_dir, model_name):
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
 
-    def top_5_accuracy(y_true, y_pred):
-        return top_k_categorical_accuracy(y_true, y_pred, k=5)
+
 
     # Let's train the model using RMSprop
     res50_model.compile(loss='categorical_crossentropy',
                   optimizer=adam,
-                  metrics=['accuracy', top_5_accuracy])
+                  metrics=['accuracy', top_k_categorical_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:

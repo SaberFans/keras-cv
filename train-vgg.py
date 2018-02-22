@@ -8,7 +8,7 @@ from __future__ import print_function
 import argparse
 
 import keras
-from keras import applications
+from keras import applications, metrics
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -25,7 +25,6 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 
 img_width, img_height = 224, 224
 
-
 def main(data_dir, model_name):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
@@ -36,13 +35,9 @@ def main(data_dir, model_name):
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
 
     # Let's train the model using RMSprop
-
-    def top_5_accuracy(y_true, y_pred):
-        return top_k_categorical_accuracy(y_true, y_pred, k=5)
-
     vgg_model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
-                  metrics=['accuracy', top_5_accuracy])
+                  metrics=['accuracy', top_k_categorical_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
