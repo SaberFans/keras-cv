@@ -230,7 +230,7 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     print('Test loss:', score[0])
     print('Test accuracy:', score[1])
 
-    savejson(score, os.path.join(save_dir, model_name + '_eval_score.json'))
+    write2f(score, os.path.join(save_dir, model_name + '_eval_score'))
 
 
 def save(obj, name):
@@ -242,11 +242,10 @@ def save(obj, name):
     except:
         return (False)
 
-def savejson(obj, name):
+def write2f(obj, name):
     try:
-        filename = open(name, "wb")
-        s = json.dumps(obj.__dict__)
-        filename.write(s)
+        filename = open(name, "w")
+        filename.write(str(dir(obj)))
         filename.close()
         return (True)
     except:
