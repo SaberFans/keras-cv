@@ -44,12 +44,11 @@ def main(data_dir, model_name, pretrain=None):
     # for layer in res50_model.layers:
     #     layer.trainable = False
     last = vgg_model.layers[-1].output
-    vgg_input = Input(shape=(224, 224, 3), name='image_input')
 
     # Only Add the fully-connected layers
     x = Dense(num_classes, activation='softmax')(last)
     # Create your own model
-    my_model = Model(input=vgg_input, output=x)
+    my_model = Model(input=vgg_model.input, output=x)
     my_model.summary()
 
     vgg_model = my_model

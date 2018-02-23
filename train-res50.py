@@ -41,12 +41,11 @@ def main(data_dir, model_name, pretrain=None):
     # for layer in res50_model.layers:
     #     layer.trainable = False
     last = res50_model.layers[-1].output
-    res50_input = Input(shape=(224, 224, 3), name='image_input')
 
     # Only Add the fully-connected layers
     x = Dense(num_classes, activation='softmax')(last)
     # Create your own model
-    my_model = Model(input=res50_input, output=x)
+    my_model = Model(input=res50_model.input, output=x)
     my_model.summary()
     res50_model = my_model
 
