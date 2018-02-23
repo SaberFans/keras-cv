@@ -31,21 +31,33 @@ save_dir = os.path.join(os.getcwd(), 'saved_models')
 img_width, img_height = 64, 64
 
 
-def create_simple_model(input_shape):
+def create_complex_model(input_shape):
     model = Sequential()
     # First convolution layer. 32 filters of size 3.
     model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape, padding='same'))
-    # Second convolution layer
-    model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+
     # # First batch normalization layer, best practice is put after relu
     model.add(BatchNormalization())
     # First Pooling layer. 64x64x32 -> 32x32x32
     model.add(MaxPooling2D((2, 2), 1))
+
+    # Second convolution layer
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    # # batch normalization layer, best practice is put after relu
+    model.add(BatchNormalization())
+    # Pooling layer. 64x64x32 -> 32x32x32
+    model.add(MaxPooling2D((2, 2), 1))
+
     # Drop out layer
     model.add(Dropout(0.25))
 
     # Third convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
     model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    # # batch normalization layer, best practice is put after relu
+    model.add(BatchNormalization())
+    # Pooling layer. 64x64x32 -> 32x32x32
+    model.add(MaxPooling2D((2, 2), 1))
+
     # Forth convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
     model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
 
@@ -65,15 +77,63 @@ def create_simple_model(input_shape):
     # Dropout layer for the first fully connected layer.
     model.add(Dropout(0.5))
 
-    # # Second fully connected layer. 32x32x32 -> 1x32768 -> 1x4096. ReLU activation.
-    # model.add(Dense(4096))
-    # model.add(Activation('relu'))
-    #
-    # # # Forth batch normalization layer
-    # model.add(BatchNormalization())
-    #
-    # # Dropout layer for the second fully connected layer.
-    # model.add(Dropout(0.5))
+    # Second fully connected layer. 32x32x32 -> 1x32768 -> 1x4096. ReLU activation.
+    model.add(Dense(4096))
+    model.add(Activation('relu'))
+
+    # # Forth batch normalization layer
+    model.add(BatchNormalization())
+
+    # Dropout layer for the second fully connected layer.
+    model.add(Dropout(0.5))
+
+    # Final fully connected layer. 1x4096 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
+    model.add(Dense(200))
+    model.add(Activation('softmax'))
+
+    return model
+
+
+def create_simple_model(input_shape):
+    model = Sequential()
+    # First convolution layer. 32 filters of size 3.
+    model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
+    model.add(Activation('relu'))
+    # First batch normalization layer
+    model.add(BatchNormalization())
+    # First Pooling layer. 64x64x32 -> 32x32x32
+    model.add(MaxPooling2D((2, 2), 1, padding='same'))
+
+    # Second convolution layer. 32 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
+    model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
+    model.add(Activation('relu'))
+    # Activation function ReLU. 32x32x32 -> 32x32x32
+    # Second batch normalization layer
+    model.add(BatchNormalization())
+
+    # Second Pooling layer. 32x32x32 -> 16x16x32
+    model.add(MaxPooling2D((2, 2), 1, padding='same'))
+
+    # First fully connected layer. 16x16x32 -> 1x8192 -> 1x4096. ReLU activation.
+    model.add(Flatten())
+    model.add(Dense(4096))
+    model.add(Activation('relu'))
+
+    # Third batch normalization layer
+    model.add(BatchNormalization())
+
+    # Dropout layer for the first fully connected layer.
+    model.add(Dropout(0.5))
+
+    # Second fully connected layer. 32x32x32 -> 1x32768 -> 1x4096. ReLU activation.
+    model.add(Dense(4096))
+    model.add(Activation('relu'))
+
+    # Forth batch normalization layer
+    model.add(BatchNormalization())
+
+    # Dropout layer for the second fully connected layer.
+    model.add(Dropout(0.5))
 
     # Final fully connected layer. 1x4096 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
     model.add(Dense(200))
@@ -107,7 +167,8 @@ def create_lava_model(input_shape):
 
 
 def main(data_dir, model_name):
-    model = create_simple_model(input_shape=(img_height, img_width, 3))
+    # model = create_simple_model(input_shape=(img_height, img_width, 3))
+    model = create_complex_model(input_shape=(img_height, img_width, 3))
     # print model structure
     model.summary()
 
