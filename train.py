@@ -39,14 +39,14 @@ def create_complex_model(input_shape):
     # # First batch normalization layer, best practice is put after relu
     model.add(BatchNormalization())
     # First Pooling layer. 64x64x32 -> 32x32x32
-    model.add(MaxPooling2D((2, 2), 1))
+    model.add(MaxPooling2D((2, 2), 2))
 
     # Second convolution layer
     model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
     # # batch normalization layer, best practice is put after relu
     model.add(BatchNormalization())
     # Pooling layer. 64x64x32 -> 32x32x32
-    model.add(MaxPooling2D((2, 2), 1))
+    model.add(MaxPooling2D((2, 2), 2))
 
     # Drop out layer
     model.add(Dropout(0.25))
@@ -68,7 +68,7 @@ def create_complex_model(input_shape):
 
     # First fully connected layer. 16x16x32 -> 1x8192 -> 1x4096. ReLU activation.
     model.add(Flatten())
-    model.add(Dense(4096))
+    model.add(Dense(1024))
     model.add(Activation('relu'))
 
     # Third batch normalization layer
@@ -77,22 +77,11 @@ def create_complex_model(input_shape):
     # Dropout layer for the first fully connected layer.
     model.add(Dropout(0.5))
 
-    # Second fully connected layer. 32x32x32 -> 1x32768 -> 1x4096. ReLU activation.
-    model.add(Dense(4096))
-    model.add(Activation('relu'))
-
-    # # Forth batch normalization layer
-    model.add(BatchNormalization())
-
-    # Dropout layer for the second fully connected layer.
-    model.add(Dropout(0.5))
-
     # Final fully connected layer. 1x4096 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
     model.add(Dense(200))
     model.add(Activation('softmax'))
 
     return model
-
 
 def create_simple_model(input_shape):
     model = Sequential()
