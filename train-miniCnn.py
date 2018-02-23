@@ -153,7 +153,7 @@ def get_datagen(data_aug, data_dir):
         class_mode='categorical')
 
     validation_generator = val_datagen.flow_from_directory(
-        data_dir + '/val/images',
+        data_dir + '/val',
         target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='categorical')
@@ -241,7 +241,7 @@ if __name__ == '__main__':
     # Parse arguments and create output directories.
     parser = argparse.ArgumentParser()
     parser.add_argument('--data_dir', type=str,
-                        default='data/tiny-imagenet-200',
+                        default='data/',
                         help='Directory in which the input data is stored.')
     parser.add_argument('--name', type=str,
                         default='miniCnn',
