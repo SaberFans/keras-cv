@@ -34,20 +34,19 @@ img_width, img_height = 64, 64
 def create_simple_model(input_shape):
     model = Sequential()
     # First convolution layer. 32 filters of size 3.
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
-    model.add(Activation('relu'))
-    # First batch normalization layer
-    model.add(BatchNormalization())
+    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    # Second convolution layer
+    model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    # # First batch normalization layer, best practice is put after relu
+    # model.add(BatchNormalization())
     # First Pooling layer. 64x64x32 -> 32x32x32
     model.add(MaxPooling2D((2, 2), 1, padding='same'))
+    # Drop out layer
+    model.add(Dropout(0.25))
 
-    # Second convolution layer. 32 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
-    model.add(Activation('relu'))
-    # Activation function ReLU. 32x32x32 -> 32x32x32
-    # Second batch normalization layer
-    model.add(BatchNormalization())
-
+    # Third convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
     # Second Pooling layer. 32x32x32 -> 16x16x32
     model.add(MaxPooling2D((2, 2), 1, padding='same'))
 
@@ -56,8 +55,8 @@ def create_simple_model(input_shape):
     model.add(Dense(4096))
     model.add(Activation('relu'))
 
-    # Third batch normalization layer
-    model.add(BatchNormalization())
+    # # Second batch normalization layer
+    # model.add(BatchNormalization())
 
     # Dropout layer for the first fully connected layer.
     model.add(Dropout(0.5))
@@ -66,8 +65,8 @@ def create_simple_model(input_shape):
     model.add(Dense(4096))
     model.add(Activation('relu'))
 
-    # Forth batch normalization layer
-    model.add(BatchNormalization())
+    # # Forth batch normalization layer
+    # model.add(BatchNormalization())
 
     # Dropout layer for the second fully connected layer.
     model.add(Dropout(0.5))
@@ -153,21 +152,22 @@ def main(data_dir, model_name):
     now = time.strftime("%c")
     run_name = model_name + now
     tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
-    # history = model.fit_generator(
-    #     train_generator,
-    #     steps_per_epoch=train_generator.n // train_generator.batch_size,
-    #     epochs=epochs,
-    #     validation_data=validation_generator,
-    #     validation_steps=train_generator.n // train_generator.batch_size,
-    #     workers=4,
-    #     callbacks=[tensorbd])
+    # record into local log
     history = model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
-        workers=8)
+        workers=4,
+        callbacks=[tensorbd])
+    # history = model.fit_generator(
+    #     train_generator,
+    #     steps_per_epoch=train_generator.n // train_generator.batch_size,
+    #     epochs=epochs,
+    #     validation_data=validation_generator,
+    #     validation_steps=train_generator.n // train_generator.batch_size,
+    #     workers=8)
 
     # persist the training data
     save(history, model_name)
