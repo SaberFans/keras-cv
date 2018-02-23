@@ -38,17 +38,16 @@ def main(data_dir, model_name, pretrain=None):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
 
-    vgg_model = applications.VGG16(weights=pretrain, include_top=False)
-    vgg_model.summary()
+    vgg_model = applications.VGG16(weights=pretrain, input_shape=(img_width, img_height, 3))
+    vgg_model.layers.pop()
+
+    # for layer in res50_model.layers:
+    #     layer.trainable = False
+    last = vgg_model.layers[-1].output
     vgg_input = Input(shape=(224, 224, 3), name='image_input')
-    output_vgg16_conv = vgg_model(vgg_input)
 
-    # Add the fully-connected layers
-    x = Flatten(name='flatten')(output_vgg16_conv)
-    x = Dense(1024, activation='relu', name='fc1')(x)
-    x = Dense(1024, activation='relu', name='fc2')(x)
-    x = Dense(num_classes, activation='softmax', name='predictions')(x)
-
+    # Only Add the fully-connected layers
+    x = Dense(num_classes, activation='softmax')(last)
     # Create your own model
     my_model = Model(input=vgg_input, output=x)
     my_model.summary()
@@ -57,13 +56,15 @@ def main(data_dir, model_name, pretrain=None):
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+    adam = keras.optimizers.adam(lr=0.001)
+    sgd = keras.optimizers.sgd(lr=0.001)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
     vgg_model.compile(loss='categorical_crossentropy',
-                      optimizer=opt,
+                      optimizer=sgd,
                       metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')

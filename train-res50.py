@@ -35,17 +35,16 @@ def main(data_dir, model_name, pretrain=None):
     if pretrain == 'yes':
         pretrain = 'imagenet'
 
-    res50_model = applications.ResNet50(weights=pretrain, include_top=False, input_shape=(img_width, img_height, 3))
-    res50_model.summary()
+    res50_model = applications.ResNet50(weights=pretrain, input_shape=(img_width, img_height, 3))
+    res50_model.layers.pop()
 
+    # for layer in res50_model.layers:
+    #     layer.trainable = False
+    last = res50_model.layers[-1].output
     res50_input = Input(shape=(224, 224, 3), name='image_input')
-    output_res50_conv = res50_model(res50_input)
 
-    # Add the fully-connected layers
-    x = Flatten(name='flatten')(output_res50_conv)
-    x = Dense(1024, activation='relu', name='fc1')(x)
-    x = Dense(1024, activation='relu', name='fc2')(x)
-    x = Dense(num_classes, activation='softmax', name='predictions')(x)
+    # Only Add the fully-connected layers
+    x = Dense(num_classes, activation='softmax')(last)
     # Create your own model
     my_model = Model(input=res50_input, output=x)
     my_model.summary()
@@ -54,13 +53,14 @@ def main(data_dir, model_name, pretrain=None):
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
+    sgd = keras.optimizers.sgd(lr=0.001)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
     res50_model.compile(loss='categorical_crossentropy',
-                        optimizer=adam,
+                        optimizer=sgd,
                         metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
