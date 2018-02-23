@@ -112,14 +112,14 @@ def main(data_dir, model_name, pretrain=None):
     print('Saved trained model at %s ' % model_path)
 
     # Score trained model.
-    score = vgg_model.evaluate_generator(
-        validation_generator,
-        steps=validation_sample_size / batch_size,
-        workers=4)
-
-    print(score)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
+    # score = vgg_model.evaluate_generator(
+    #     validation_generator,
+    #     steps=validation_sample_size / batch_size,
+    #     workers=4)
+    #
+    # print(score)
+    # print('Test loss:', score[0])
+    # print('Test accuracy:', score[1])
 
 
 if __name__ == '__main__':

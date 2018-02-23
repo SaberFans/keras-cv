@@ -216,15 +216,15 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     model.save(model_path)
     print('Saved trained model at %s ' % model_path)
 
-    # Score trained model.
-    score = model.evaluate_generator(
-        validation_generator,
-        steps=validation_sample_size / batch_size,
-        workers=8)
-
-    print(score)
-    print('Test loss:', score[0])
-    print('Test accuracy:', score[1])
+    # # Score trained model.
+    # score = model.evaluate_generator(
+    #     validation_generator,
+    #     steps=validation_generator.n // validation_generator.batch_size,
+    #     workers=4)
+    #
+    # print(score)
+    # print('Test loss:', score[0])
+    # print('Test accuracy:', score[1])
 
 
 def save(obj, name):
@@ -247,8 +247,9 @@ if __name__ == '__main__':
                         default='miniCnn',
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
-
+    print('----------Default MiniCnn config-------------')
     train(args.data_dir, model_name=args.name, opti='adam')
+    print('---------------------------------------------')
 
     # run scheduler
     rates = [0.001, 0.01, 0.1]
@@ -257,6 +258,7 @@ if __name__ == '__main__':
     optimizer = keras.optimizers.SGD(lr=rates[0], decay=1e-6, momentum=0.9, nesterov=True)
 
     # run through all the optimizers with different rates
+    print('-----optimizer/learning rate picking process starting-------')
     for opt in optimzers:
         if opt is 'opt':
             optimizer = keras.optimizers.rmsprop(lr=rate, decay=1e-6)
@@ -265,22 +267,28 @@ if __name__ == '__main__':
         for rate in rates:
             modelName = args.name + '_' + opt + '_' + str(rate)
             train(args.data_dir, opti=optimizer, model_name=modelName)
+    print('----------------------------------------------')
 
     # run the augmentation check
+    print('-----augmentation comp process starting-------')
     modelName = args.name + '_DataAug'
     train(args.data_dir, model_name= modelName, opti=optimizer, data_aug=False)
 
     modelName = args.name + '_noDataAug'
     train(args.data_dir, model_name=modelName, opti=optimizer, data_aug=False)
+    print('----------------------------------------------')
 
     # run the dropout test
+    print('-----drop out comp process starting-------')
     modelName = args.name + '_DropOut'
     train(args.data_dir, model_name= modelName, opti=optimizer)
     modelName = args.name + '_NoDropOut'
     train(args.data_dir, model_name=modelName, opti=optimizer, dropout=False)
-
+    print('----------------------------------------------')
     # run different loss
+    print('-----loss comp process starting-------')
     modelName = args.name + '_categorical_crossentropy'
     train(args.data_dir, model_name=modelName, lossfunc='categorical_crossentropy')
     modelName = args.name + '_sparse_categorical_crossentropy'
     train(args.data_dir, model_name=modelName, lossfunc = 'sparse_categorical_crossentropy')
+    print('----------------------------------------------')
