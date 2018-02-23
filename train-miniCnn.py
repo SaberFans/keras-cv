@@ -4,6 +4,9 @@ It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
 '''
 
 from __future__ import print_function
+
+import json
+
 import keras
 import pickle
 
@@ -206,8 +209,9 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
         workers=4,
         callbacks=[tensorbd])
 
-    # persist the training data
-    save(history, model_name)
+    # persist the model history
+    save(history, os.path.join(save_dir, model_name))
+
     # Save model and weights
     if not os.path.isdir(save_dir):
         os.makedirs(save_dir)
@@ -216,15 +220,17 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     model.save(model_path)
     print('Saved trained model at %s ' % model_path)
 
-    # # Score trained model.
-    # score = model.evaluate_generator(
-    #     validation_generator,
-    #     steps=validation_generator.n // validation_generator.batch_size,
-    #     workers=4)
-    #
-    # print(score)
-    # print('Test loss:', score[0])
-    # print('Test accuracy:', score[1])
+    # Score trained model.
+    score = model.evaluate_generator(
+        validation_generator,
+        steps=validation_generator.n // validation_generator.batch_size,
+        workers=4)
+
+    print(score)
+    print('Test loss:', score[0])
+    print('Test accuracy:', score[1])
+
+    savejson(score, os.path.join(save_dir, model_name + '_eval_score.json'))
 
 
 def save(obj, name):
@@ -236,6 +242,15 @@ def save(obj, name):
     except:
         return (False)
 
+def savejson(obj, name):
+    try:
+        filename = open(name, "wb")
+        s = json.dumps(obj.__dict__)
+        filename.write(s)
+        filename.close()
+        return (True)
+    except:
+        return (False)
 
 if __name__ == '__main__':
     # Parse arguments and create output directories.
