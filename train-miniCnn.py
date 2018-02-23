@@ -245,7 +245,7 @@ def save(obj, name):
 def write2f(obj, name):
     try:
         filename = open(name, "w")
-        filename.write(str(dir(obj)))
+        filename.write("loss: {}, accuracy: {}, top5_accuracy: {}".format(obj[0], obj[1],obj[2]))
         filename.close()
         return (True)
     except:
