@@ -26,12 +26,12 @@ num_classes = 200
 epochs = 50
 sample_size = 100000
 validation_sample_size = 10000
-save_dir = os.path.join(os.getcwd(), 'saved_models')
+save_dir = os.path.join(os.getcwd(), 'saved_models/miniCnn')
 
 img_width, img_height = 64, 64
 
 
-def create_complex_model(input_shape):
+def create_miniCnn_model(input_shape, dropout=True):
     model = Sequential()
     # First convolution layer. 32 filters of size 3.
     model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape, padding='same'))
@@ -49,7 +49,8 @@ def create_complex_model(input_shape):
     model.add(MaxPooling2D((2, 2), 2))
 
     # Drop out layer
-    model.add(Dropout(0.25))
+    if dropout:
+        model.add(Dropout(0.25))
 
     # Third convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
     model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
@@ -75,7 +76,8 @@ def create_complex_model(input_shape):
     model.add(BatchNormalization())
 
     # Dropout layer for the first fully connected layer.
-    model.add(Dropout(0.5))
+    if dropout:
+        model.add(Dropout(0.5))
 
     # Final fully connected layer. 1x4096 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
     model.add(Dense(200))
@@ -83,7 +85,8 @@ def create_complex_model(input_shape):
 
     return model
 
-def create_simple_model(input_shape):
+
+def create_trivial_model(input_shape):
     model = Sequential()
     # First convolution layer. 32 filters of size 3.
     model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
@@ -131,61 +134,17 @@ def create_simple_model(input_shape):
     return model
 
 
-def create_lava_model(input_shape):
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-
-    model.add(Conv2D(32, (3, 3), padding='same'))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2), padding='same'))
-
-    model.add(Conv2D(64, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Flatten())
-    model.add(Dense(64))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(200))
-    model.add(Activation('softmax'))
-
-    return model
-
-
-def main(data_dir, model_name):
-    # model = create_simple_model(input_shape=(img_height, img_width, 3))
-    model = create_complex_model(input_shape=(img_height, img_width, 3))
-    # print model structure
-    model.summary()
-
-    # visualize
-    from keras.utils import plot_model
-    plot_model(model, to_file=model_name + '.png')
-
-    # initiate RMSprop optimizer
-    opt = keras.optimizers.rmsprop(lr=0.001, decay=1e-6)
-    adam = keras.optimizers.adam(lr=0.001)
-    sgd = keras.optimizers.SGD(lr=0.001, decay=1e-6, momentum=0.9, nesterov=True)
-
-    def top_5_accuracy(y_true, y_pred):
-        return top_k_categorical_accuracy(y_true, y_pred, k=5)
-
-    model.compile(loss='categorical_crossentropy',
-                  optimizer='rmsprop',  # use rmsprop optimizer
-                  metrics=['accuracy', top_5_accuracy])
-
-    print('Using real-time data augmentation.')
-    # This will do preprocessing and realtime data augmentation:
-    train_datagen = ImageDataGenerator(
-        rescale=1. / 255,
-        shear_range=0.2,
-        zoom_range=0.2,
-        horizontal_flip=True)
-
-    val_datagen = ImageDataGenerator(rescale=1. / 255)
+def get_datagen(data_aug, data_dir):
+    train_datagen = ImageDataGenerator()
+    val_datagen = ImageDataGenerator()
+    if data_aug:
+        train_datagen = ImageDataGenerator(
+            rescale=1. / 255,
+            shear_range=0.2,
+            zoom_range=0.2,
+            horizontal_flip=True,
+            rotation_range=90)
+        val_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
@@ -198,10 +157,41 @@ def main(data_dir, model_name):
         target_size=(img_width, img_height),
         batch_size=batch_size,
         class_mode='categorical')
+    return train_generator, validation_generator
+
+
+def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_crossentropy', dropout=True):
+
+    # by default train miniCnn
+    model = create_miniCnn_model(input_shape=(img_height, img_width, 3), dropout=dropout)
+    if 'trivial' in model_name:
+        model = create_trivial_model(input_shape=(img_height, img_width, 3))
+    # print model structure
+    assert (model is not None), 'model_name is empty, define the one you want to run!'
+
+    model.summary()
+
+    # visualize
+    from keras.utils import plot_model
+    plot_model(model, to_file=model_name + '.png')
+
+    # initiate RMSprop optimizer
+
+    def top_5_accuracy(y_true, y_pred):
+        return top_k_categorical_accuracy(y_true, y_pred, k=5)
+
+    model.compile(loss=lossfunc,
+                  optimizer=opti,
+                  metrics=['accuracy', top_5_accuracy])
+
+    print('Using real-time data augmentation.')
+    # This will do preprocessing and realtime data augmentation:
+
+    (train_generator, validation_generator) = get_datagen(data_aug, data_dir)
 
     # Compute quantities required for feature-wise normalization
     # (std, mean, and principal components if ZCA whitening is applied).
-    # train_datagen.fit(x_train)
+    # train_generator.fit(x_train)
 
     now = time.strftime("%c")
     run_name = model_name + now
@@ -215,13 +205,6 @@ def main(data_dir, model_name):
         validation_steps=train_generator.n // train_generator.batch_size,
         workers=4,
         callbacks=[tensorbd])
-    # history = model.fit_generator(
-    #     train_generator,
-    #     steps_per_epoch=train_generator.n // train_generator.batch_size,
-    #     epochs=epochs,
-    #     validation_data=validation_generator,
-    #     validation_steps=train_generator.n // train_generator.batch_size,
-    #     workers=8)
 
     # persist the training data
     save(history, model_name)
@@ -261,8 +244,43 @@ if __name__ == '__main__':
                         default='data/tiny-imagenet-200',
                         help='Directory in which the input data is stored.')
     parser.add_argument('--name', type=str,
-                        default='lavanet',
+                        default='miniCnn',
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
 
-    main(args.data_dir, args.name)
+    train(args.data_dir, model_name=args.name, opti='adam')
+
+    # run scheduler
+    rates = [0.001, 0.01, 0.1]
+    optimzers = ['rmsprop', 'adam']
+    # default opt
+    optimizer = keras.optimizers.SGD(lr=rates[0], decay=1e-6, momentum=0.9, nesterov=True)
+
+    # run through all the optimizers with different rates
+    for opt in optimzers:
+        if opt is 'opt':
+            optimizer = keras.optimizers.rmsprop(lr=rate, decay=1e-6)
+        elif opt is 'adam':
+            optimizer = keras.optimizers.adam(lr=rate)
+        for rate in rates:
+            modelName = args.name + '_' + opt + '_' + str(rate)
+            train(args.data_dir, opti=optimizer, model_name=modelName)
+
+    # run the augmentation check
+    modelName = args.name + '_DataAug'
+    train(args.data_dir, model_name= modelName, opti=optimizer, data_aug=False)
+
+    modelName = args.name + '_noDataAug'
+    train(args.data_dir, model_name=modelName, opti=optimizer, data_aug=False)
+
+    # run the dropout test
+    modelName = args.name + '_DropOut'
+    train(args.data_dir, model_name= modelName, opti=optimizer)
+    modelName = args.name + '_NoDropOut'
+    train(args.data_dir, model_name=modelName, opti=optimizer, dropout=False)
+
+    # run different loss
+    modelName = args.name + '_categorical_crossentropy'
+    train(args.data_dir, model_name=modelName, lossfunc='categorical_crossentropy')
+    modelName = args.name + '_sparse_categorical_crossentropy'
+    train(args.data_dir, model_name=modelName, lossfunc = 'sparse_categorical_crossentropy')
