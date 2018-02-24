@@ -30,15 +30,18 @@ img_width, img_height = 224, 224
 
 
 def main(data_dir, model_name, pretrain=None):
-    # AlexNet with batch normalization in Keras
-    # input image is 224x224
     if pretrain == 'yes':
         pretrain = 'imagenet'
 
-    # Xception with batch normalization in Keras
-    # input image is 224x224
+    xcep_model = applications.Xception(weights=pretrain, input_shape=(img_width, img_height, 3), classes=num_classes,
+                                       include_top=False)
 
-    xcep_model = applications.Xception(weights=pretrain, input_shape=(img_width, img_height, 3), classes=num_classes)
+    # add a global spatial average pooling layer
+    x = xcep_model.output
+    x = Dense(num_classes, activation='softmax', name='predictions')(x)
+
+    # this is the model we will fine-tune
+    xcep_model = Model(inputs=xcep_model.input, outputs=x)
     xcep_model.summary()
 
     # initiate RMSprop optimizer

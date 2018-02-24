@@ -35,16 +35,17 @@ def main(data_dir, model_name, pretrain=None):
     if pretrain == 'yes':
         pretrain = 'imagenet'
 
-    res50_model = applications.ResNet50(weights=pretrain, input_shape=(img_width, img_height, 3))
-    res50_model.layers.pop()
+    res50_model = applications.ResNet50(weights=pretrain, input_shape=(img_width, img_height, 3), include_top=False)
 
     # for layer in res50_model.layers:
     #     layer.trainable = False
-    last = res50_model.layers[-1].output
+    last = res50_model.output
 
     # Only Add the fully-connected layers
-    x = Dense(num_classes, activation='softmax')(last)
-    # Create your own model
+    x = Flatten()(last)
+    x = Dense(num_classes, activation='softmax')(x)
+
+    # this is the model we will fine-tune
     my_model = Model(input=res50_model.input, output=x)
     my_model.summary()
     res50_model = my_model
