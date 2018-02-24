@@ -52,7 +52,7 @@ def main(data_dir, model_name, pretrain=None):
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
-    sgd = keras.optimizers.sgd(lr=0.001)
+    sgd = keras.optimizers.sgd(lr=0.01, momentum=.9)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
@@ -64,7 +64,11 @@ def main(data_dir, model_name, pretrain=None):
 
     print('Using real-time data augmentation.')
 
-    train_datagen = ImageDataGenerator(rescale=1. / 255)  # normalize the grb value
+    train_datagen = ImageDataGenerator(
+        rescale=1. / 255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)  # normalize the grb value
     test_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
