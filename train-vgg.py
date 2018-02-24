@@ -38,20 +38,7 @@ def main(data_dir, model_name, pretrain=None):
     # AlexNet with batch normalization in Keras
     # input image is 224x224
 
-    vgg_model = applications.VGG16(weights=pretrain, input_shape=(img_width, img_height, 3))
-    vgg_model.layers.pop()
-
-    # for layer in res50_model.layers:
-    #     layer.trainable = False
-    last = vgg_model.layers[-1].output
-
-    # Only Add the fully-connected layers
-    x = Dense(num_classes, activation='softmax')(last)
-    # Create your own model
-    my_model = Model(input=vgg_model.input, output=x)
-    my_model.summary()
-
-    vgg_model = my_model
+    vgg_model = applications.VGG16(weights=pretrain, input_shape=(img_width, img_height, 3), classes=200)
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
@@ -62,8 +49,9 @@ def main(data_dir, model_name, pretrain=None):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
+    from keras.optimizers import SGD
     vgg_model.compile(loss='categorical_crossentropy',
-                      optimizer=sgd,
+                      optimizer=SGD(lr=0.0001, momentum=0.9),
                       metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
