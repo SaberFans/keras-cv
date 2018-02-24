@@ -35,54 +35,44 @@ def main(data_dir, model_name, pretrain=None):
     if pretrain == 'yes':
         pretrain = 'imagenet'
 
-    # AlexNet with batch normalization in Keras
+    # Xception with batch normalization in Keras
     # input image is 224x224
 
-    mob_model = applications.MobileNet(weights=pretrain, input_shape=(img_width, img_height, 3))
-    mob_model.layers.pop()
-
-    # for layer in res50_model.layers:
-    #     layer.trainable = False
-    last = mob_model.layers[-1].output
-
-    # Only Add the fully-connected layers
-    x = Dense(num_classes, activation='softmax')(last)
-    # Create your own model
-    my_model = Model(input=mob_model.input, output=x)
-    my_model.summary()
-
-    mob_model = my_model
+    xcep_model = applications.Xception(weights=pretrain, input_shape=(img_width, img_height, 3), classes=num_classes)
+    xcep_model.summary()
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
-    sgd = keras.optimizers.sgd(lr=0.001)
+    sgd = keras.optimizers.sgd(lr=0.01, momentum=.9)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
-    mob_model.compile(loss='categorical_crossentropy',
+    xcep_model.compile(loss='categorical_crossentropy',
                       optimizer=sgd,
                       metrics=['accuracy', top_5_accuracy])
 
     print('Using real-time data augmentation.')
     # This will do preprocessing and realtime data augmentation:
-    train_datagen = ImageDataGenerator(rescale=1. / 255)  # normalize the grb value
+    train_datagen = ImageDataGenerator(
+        rescale=1. / 255,
+        shear_range=0.2,
+        zoom_range=0.2,
+        horizontal_flip=True)  # normalize the grb value
     test_datagen = ImageDataGenerator(rescale=1. / 255)
 
     train_generator = train_datagen.flow_from_directory(
         data_dir + '/train',
         target_size=(img_width, img_height),
         batch_size=batch_size,
-        save_format='JPEG',
         class_mode='categorical')
 
     validation_generator = test_datagen.flow_from_directory(
         data_dir + '/val',
         target_size=(img_width, img_height),
         batch_size=batch_size,
-        save_format='JPEG',
         class_mode='categorical')
 
     # Compute quantities required for feature-wise normalization
@@ -95,7 +85,7 @@ def main(data_dir, model_name, pretrain=None):
     now = time.strftime("%c")
     run_name = model_name + now
     tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
-    mob_model.fit_generator(
+    xcep_model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
@@ -108,7 +98,7 @@ def main(data_dir, model_name, pretrain=None):
         os.makedirs(save_dir)
 
     model_path = os.path.join(save_dir, model_name + '.h5')
-    mob_model.save(model_path)
+    xcep_model.save(model_path)
     print('Saved trained model at %s ' % model_path)
 
     # Score trained model.
@@ -129,7 +119,7 @@ if __name__ == '__main__':
                         default='data/',
                         help='Directory in which the input data is stored.')
     parser.add_argument('--name', type=str,
-                        default='mobilenet',
+                        default='xception',
                         help='Name of this training run. Will store results in output/[name]')
     parser.add_argument('--pretrain', type=str,
                         help='Name of this training run. Will store results in output/[name]')
