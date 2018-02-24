@@ -86,6 +86,9 @@ def main(data_dir, model_name, pretrain=None):
     # Compute quantities required for feature-wise normalization
     # (std, mean, and principal components if ZCA whitening is applied).
     # train_datagen.fit(x_train)
+    print(train_generator.n // train_generator.batch_size)
+    print("---------")
+
     now = time.strftime("%c")
     run_name = model_name + now
     tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
