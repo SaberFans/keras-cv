@@ -11,7 +11,7 @@ import time
 import keras
 from keras import applications, Input, Model
 from keras.callbacks import TensorBoard
-from keras.layers import Flatten, Dense
+from keras.layers import Flatten, Dense, GlobalAveragePooling2D
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -33,16 +33,17 @@ def main(data_dir, model_name, pretrain=None):
     if pretrain == 'yes':
         pretrain = 'imagenet'
 
-    xcep_model = applications.Xception(weights=pretrain, input_shape=(img_width, img_height, 3), classes=num_classes,
+    xcep_model = applications.Xception(weights=pretrain, input_shape=(img_width, img_height, 3),
                                        include_top=False)
-
-    # add a global spatial average pooling layer
     x = xcep_model.output
-    x = Dense(num_classes, activation='softmax', name='predictions')(x)
+    x = GlobalAveragePooling2D()(x)
+    predictions = Dense(num_classes, activation='softmax')(x)
+
+    # add your top layer block to your base model
+    model = Model(xcep_model.input, predictions)
 
     # this is the model we will fine-tune
-    xcep_model = Model(inputs=xcep_model.input, outputs=x)
-    xcep_model.summary()
+    model.summary()
 
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
@@ -53,7 +54,7 @@ def main(data_dir, model_name, pretrain=None):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     # Let's train the model using RMSprop
-    xcep_model.compile(loss='categorical_crossentropy',
+    model.compile(loss='categorical_crossentropy',
                       optimizer=sgd,
                       metrics=['accuracy', top_5_accuracy])
 
@@ -88,7 +89,7 @@ def main(data_dir, model_name, pretrain=None):
     now = time.strftime("%c")
     run_name = model_name + now
     tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
-    xcep_model.fit_generator(
+    model.fit_generator(
         train_generator,
         steps_per_epoch=train_generator.n // train_generator.batch_size,
         epochs=epochs,
@@ -101,7 +102,7 @@ def main(data_dir, model_name, pretrain=None):
         os.makedirs(save_dir)
 
     model_path = os.path.join(save_dir, model_name + '.h5')
-    xcep_model.save(model_path)
+    model.save(model_path)
     print('Saved trained model at %s ' % model_path)
 
     # Score trained model.
