@@ -262,19 +262,19 @@ if __name__ == '__main__':
                         help='Name of this training run. Will store results in output/[name]')
     args, unparsed = parser.parse_known_args()
     print('----------Default MiniCnn config-------------')
-    train(args.data_dir, model_name=args.name, opti='adam')
+    train(args.data_dir, model_name=args.name, opti='sgd')
     print('---------------------------------------------')
 
     # run scheduler
     rates = [0.001, 0.01, 0.1]
-    optimzers = ['rmsprop', 'adam']
+    optimzers = ['sgd', 'rmsprop', 'adam']
     # default opt
     optimizer = keras.optimizers.SGD(lr=rates[0], decay=1e-6, momentum=0.9, nesterov=True)
 
     # run through all the optimizers with different rates
     print('-----optimizer/learning rate picking process starting-------')
     for opt in optimzers:
-        if opt is 'opt':
+        if opt is 'rmsprop':
             optimizer = keras.optimizers.rmsprop(lr=rate, decay=1e-6)
         elif opt is 'adam':
             optimizer = keras.optimizers.adam(lr=rate)

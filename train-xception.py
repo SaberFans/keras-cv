@@ -47,7 +47,7 @@ def main(data_dir, model_name, pretrain=None):
     # initiate RMSprop optimizer
     opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
     adam = keras.optimizers.adam(lr=0.001)
-    sgd = keras.optimizers.sgd(lr=0.01, momentum=.9)
+    sgd = keras.optimizers.sgd(lr=0.01, decay=0.004, momentum=.9)
 
     def top_5_accuracy(y_true, y_pred):
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
