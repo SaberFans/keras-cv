@@ -243,7 +243,7 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     assert (model is not None), 'model_name is empty, define the one you want to run!'
     if os.path.isfile(os.path.join(save_dir, model_name)):
         print('---------loading existing pre-trained model---------')
-        model = models.load_model(os.path.join(save_dir, model_name).join('.h5'),
+        model = models.load_model(os.path.join(save_dir, model_name)+'.h5',
                                   custom_objects={'top_5_accuracy': custom_metric})
     model.summary()
 
