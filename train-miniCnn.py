@@ -31,7 +31,7 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), 'saved_models/miniCnn')
 
-img_width, img_height = 64, 64
+img_width, img_height = 128, 128 
 
 def create_alex_model(input_shape, dropout=True):
     model = Sequential()
