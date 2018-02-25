@@ -11,7 +11,9 @@ import keras
 import pickle
 
 import time
+import os.path
 
+from keras import models
 from keras.callbacks import TensorBoard
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
@@ -234,18 +236,20 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     if 'alex' in model_name:
         model = create_alex_model(input_shape=(img_height, img_width, 3))
     # print model structure
-    assert (model is not None), 'model_name is empty, define the one you want to run!'
 
+    def top_5_accuracy(y_true, y_pred):
+        return top_k_categorical_accuracy(y_true, y_pred, k=5)
+    custom_metric = top_5_accuracy
+    assert (model is not None), 'model_name is empty, define the one you want to run!'
+    if os.path.isfile(os.path.join(save_dir, model_name)):
+        print('---------loading existing pre-trained model---------')
+        model = models.load_model(os.path.join(save_dir, model_name).join('.h5'),
+                                  custom_objects={'top_5_accuracy': custom_metric})
     model.summary()
 
     # visualize
     from keras.utils import plot_model
     plot_model(model, to_file=model_name + '.png')
-
-    # initiate RMSprop optimizer
-
-    def top_5_accuracy(y_true, y_pred):
-        return top_k_categorical_accuracy(y_true, y_pred, k=5)
 
     model.compile(loss=lossfunc,
                   optimizer=opti,
