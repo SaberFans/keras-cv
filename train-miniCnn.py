@@ -33,19 +33,78 @@ save_dir = os.path.join(os.getcwd(), 'saved_models/miniCnn')
 
 img_width, img_height = 64, 64
 
+def create_alex_model(input_shape, dropout=True):
+    model = Sequential()
+    # First convolution layer. 32 filters of size 3.
+    model.add(Conv2D(96, kernel_size= (3, 3), strides=2, input_shape=input_shape))
+    # (64-3)/2 +1 = 51*51*93
+    model.add(keras.layers.LeakyReLU())
+    # First Pooling layer. 128*128*32 -> 32x32x32
+    model.add(MaxPooling2D((3, 3), 2))
+    # (51-3)/2 + 1 = 20
+    # # First batch normalization layer, best practice is put after relu
+    model.add(BatchNormalization())
+    # 20*20*96
+
+    # Second convolution layer
+    model.add(Conv2D(256, (5, 5), strides=1, padding='same'))
+    # (20-5+2)/1 + 1 = 17*17*256
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(MaxPooling2D((3, 3), 2))
+    # (17-3)/2 + 1 = 8
+
+    # # batch normalization layer, best practice is put after relu
+    model.add(BatchNormalization())
+
+    # Drop out layer
+    if dropout:
+        model.add(Dropout(0.1))
+
+    # Third convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
+    model.add(Conv2D(384, (3, 3)))
+    model.add(keras.layers.LeakyReLU())
+    model.add(MaxPooling2D((3, 3), 2, padding='same'))
+    # (8-3+2)/2 + 1 = 4
+
+    # # batch normalization layer, best practice is put after relu
+    model.add(BatchNormalization())
+    # 4*4*256
+
+    # First fully connected layer. 16x16x32 -> 1x8192 -> 1x4096. ReLU activation.
+    model.add(Flatten())
+    model.add(Dense(2048))
+    model.add(keras.layers.LeakyReLU())
+
+    # Third batch normalization layer
+    model.add(BatchNormalization())
+
+    # Dropout layer for the first fully connected layer.
+    if dropout:
+        model.add(Dropout(0.5))
+
+    # Final fully connected layer. 1x4096 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
+    model.add(Dense(200))
+    model.add(Activation('softmax'))
+
+    return model
+
 
 def create_miniCnn_model(input_shape, dropout=True):
     model = Sequential()
     # First convolution layer. 32 filters of size 3.
-    model.add(Conv2D(32, (3, 3), activation='relu', input_shape=input_shape, padding='same'))
+    model.add(Conv2D(32, kernel_size= (3, 3), input_shape=input_shape))
+    model.add(keras.layers.LeakyReLU())
 
     # # First batch normalization layer, best practice is put after relu
     model.add(BatchNormalization())
-    # First Pooling layer. 64x64x32 -> 32x32x32
+    # First Pooling layer. 128*128*32 -> 32x32x32
     model.add(MaxPooling2D((2, 2), 2))
 
     # Second convolution layer
-    model.add(Conv2D(32, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(64, (3, 3)))
+    model.add(keras.layers.LeakyReLU())
+
     # # batch normalization layer, best practice is put after relu
     model.add(BatchNormalization())
     # Pooling layer. 64x64x32 -> 32x32x32
@@ -56,14 +115,17 @@ def create_miniCnn_model(input_shape, dropout=True):
         model.add(Dropout(0.25))
 
     # Third convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
-    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    model.add(Conv2D(64, (3, 3)))
+    model.add(keras.layers.LeakyReLU())
+
     # # batch normalization layer, best practice is put after relu
     model.add(BatchNormalization())
     # Pooling layer. 64x64x32 -> 32x32x32
     model.add(MaxPooling2D((2, 2), 1))
 
-    # Forth convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
-    model.add(Conv2D(64, (3, 3), activation='relu', padding='same'))
+    # Forth convolution layer. 64 filters of size 3. Activation function ReLU. 32x32x128 -> 32x32x32
+    model.add(Conv2D(128, (3, 3), padding='same'))
+    model.add(keras.layers.LeakyReLU())
 
     # Second Batch Norm
     model.add(BatchNormalization())
@@ -73,7 +135,7 @@ def create_miniCnn_model(input_shape, dropout=True):
     # First fully connected layer. 16x16x32 -> 1x8192 -> 1x4096. ReLU activation.
     model.add(Flatten())
     model.add(Dense(1024))
-    model.add(Activation('relu'))
+    model.add(keras.layers.LeakyReLU())
 
     # Third batch normalization layer
     model.add(BatchNormalization())
@@ -100,7 +162,7 @@ def create_trivial_model(input_shape):
     model.add(MaxPooling2D((2, 2), 1, padding='same'))
 
     # Second convolution layer. 32 filters of size 3. Activation function ReLU. 32x32x32 -> 32x32x32
-    model.add(Conv2D(32, (3, 3), input_shape=input_shape, padding='same'))
+    model.add(Conv2D(64, (3, 3), input_shape=input_shape, padding='same'))
     model.add(Activation('relu'))
     # Activation function ReLU. 32x32x32 -> 32x32x32
     # Second batch normalization layer
@@ -169,6 +231,8 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     model = create_miniCnn_model(input_shape=(img_height, img_width, 3), dropout=dropout)
     if 'trivial' in model_name:
         model = create_trivial_model(input_shape=(img_height, img_width, 3))
+    if 'alex' in model_name:
+        model = create_alex_model(input_shape=(img_height, img_width, 3))
     # print model structure
     assert (model is not None), 'model_name is empty, define the one you want to run!'
 
