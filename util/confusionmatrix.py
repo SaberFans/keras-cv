@@ -6,10 +6,9 @@ It gets to 75% validation accuracy in 25 epochs, and 79% after 50 epochs.
 from __future__ import print_function
 
 import itertools
-from collections import OrderedDict
 
 import matplotlib.pyplot as plt
-from keras import applications, models
+from keras import models
 from keras.layers import np
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
@@ -69,14 +68,16 @@ def confu_matrix_gen(data_dir, validation_generator, model=None):
     print('----------confusion matrix--------')
     print(cnf_matrix)
     # write into file
-    cnf_mtx_file = open("matrix.txt", "w")
-    cnf_mtx_file.write(str(cnf_matrix))
-    cnf_mtx_file.close()
+    # cnf_mtx_file = open("matrix.txt", "w")
+    # cnf_mtx_file.write(str(cnf_matrix))
+    # cnf_mtx_file.close()
 
-    # labels = np.arange(classes)
-    # plot_confusion_matrix(cnf_matrix, classes=labels)
-    # np.set_printoptions(precision=2)
-    # plt.show()
+    labels = np.arange(classes)
+    plot_confusion_matrix(cnf_matrix, classes=labels)
+    plt.figure()
+    plot_confusion_matrix(cnf_matrix, classes=labels,normalize=True)
+    np.set_printoptions(precision=2)
+    plt.show()
 
 def plot_confusion_matrix(cm, classes,
                           normalize=False,
