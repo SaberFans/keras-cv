@@ -23,7 +23,7 @@ num_classes = 200
 epochs = 25
 sample_size = 100000
 validation_sample_size = 10000
-save_dir = os.path.join(os.getcwd(), 'saved_models/miniCnn')
+save_dir = os.path.join(os.getcwd(), '../saved_models/miniCnn')
 
 def confu_matrix_gen(data_dir, img_width, img_height, model=None):
     if model ==None:
@@ -113,7 +113,7 @@ def top_5_accuracy(y_true, y_pred):
 custom_metric = top_5_accuracy
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 validation_generator = test_datagen.flow_from_directory(
-        'data/val',
+        '../data/val',
         target_size=(128, 128),
         batch_size=1,
         class_mode='categorical',
