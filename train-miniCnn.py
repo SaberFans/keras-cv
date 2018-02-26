@@ -44,7 +44,6 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
     custom_metric = top_5_accuracy
     assert (model is not None), 'model_name is empty, define the one you want to run!'
-    print(os.path.join(save_dir,model_name+'.h5'))
     if os.path.isfile( os.path.join(save_dir, model_name+'.h5')):
         print('---------loading existing pre-trained model---------')
         model = models.load_model(os.path.join(save_dir, model_name)+'.h5',
@@ -65,7 +64,7 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     # tensorboard
     tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
     # best checkpoint
-    filepath = save_dir.join(model_name+"weights.best.hdf5")
+    filepath = os.path.join(save_dir, model_name+".weights.best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
     # early stop
     earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=5,
