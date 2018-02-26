@@ -70,7 +70,7 @@ def confu_matrix_gen(data_dir, validation_generator, model=None):
     print(cnf_matrix)
     # write into file
     cnf_mtx_file = open("matrix.txt", "w")
-    cnf_mtx_file.write(cnf_matrix)
+    cnf_mtx_file.write(str(cnf_matrix))
     cnf_mtx_file.close()
 
     # labels = np.arange(classes)
