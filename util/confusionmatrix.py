@@ -68,6 +68,10 @@ def confu_matrix_gen(data_dir, validation_generator, model=None):
     cnf_matrix = confusion_matrix(y_real_m, y_preds_m)
     print('----------confusion matrix--------')
     print(cnf_matrix)
+    # write into file
+    cnf_mtx_file = open("matrix.txt", "w")
+    cnf_mtx_file.write(cnf_matrix)
+    cnf_mtx_file.close()
 
     # labels = np.arange(classes)
     # plot_confusion_matrix(cnf_matrix, classes=labels)
@@ -123,4 +127,4 @@ validation_generator = test_datagen.flow_from_directory(
         batch_size=1,
         class_mode='categorical',
         shuffle=False)
-confu_matrix_gen('../data', validation_generator)
+confu_matrix_gen('../data', validation_generator, model)
