@@ -14,7 +14,7 @@ import time
 import os.path
 
 from keras import models
-from keras.callbacks import TensorBoard, ModelCheckpoint
+from keras.callbacks import TensorBoard, ModelCheckpoint, EarlyStopping
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -304,7 +304,9 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
     # best checkpoint
     filepath = os.path.join(save_dir, model_name).join("weights.best.hdf5")
     checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
-
+    # early stop
+    earlystop = EarlyStopping(monitor='val_acc', min_delta=0.0001, patience=5,
+                              verbose=1, mode='auto')
     # record into local log
     history = model.fit_generator(
         train_generator,
@@ -313,7 +315,7 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
         workers=4,
-        callbacks=[tensorbd, checkpoint])
+        callbacks=[tensorbd, checkpoint, earlystop])
     #
     # # persist the model history
     # save(history, os.path.join(save_dir, model_name))
