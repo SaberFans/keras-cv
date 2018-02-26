@@ -108,12 +108,12 @@ def plot_confusion_matrix(cm, classes,
 
 
 # load saved best checkpoint model
-# # custom top 5 accuracy
-# def top_5_accuracy(y_true, y_pred):
-#     return top_k_categorical_accuracy(y_true, y_pred, k=5)
-# custom_metric = top_5_accuracy
-# print('---------loading existing pre-trained model---------')
-# model = models.load_model(os.path.join(save_dir, 'miniCnn.h5'), custom_objects={'top_5_accuracy':custom_metric})
+# custom top 5 accuracy
+def top_5_accuracy(y_true, y_pred):
+    return top_k_categorical_accuracy(y_true, y_pred, k=5)
+custom_metric = top_5_accuracy
+print('---------loading existing pre-trained model---------')
+model = models.load_model(os.path.join(save_dir, 'miniCnn.h5'), custom_objects={'top_5_accuracy':custom_metric})
 
 
 test_datagen = ImageDataGenerator(rescale=1. / 255)
