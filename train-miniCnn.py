@@ -14,7 +14,7 @@ import time
 import os.path
 
 from keras import models
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
@@ -90,7 +90,44 @@ def create_alex_model(input_shape, dropout=True):
     model.add(Activation('softmax'))
 
     return model
+def create_miniCnn2_model(input_shape, dropout=True):
 
+    model = Sequential()
+    model.add(Conv2D(64, kernel_size=(3, 3), input_shape=input_shape))
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(Conv2D(64, kernel_size=(3, 3)))
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(MaxPooling2D((3, 3), 2, padding='same'))
+
+    model.add(Conv2D(128, (3, 3)))
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(Conv2D(128, (3, 3)))
+    model.add(keras.layers.LeakyReLU())
+
+    model.add(MaxPooling2D((3, 3), 2, padding='same'))
+    if dropout:
+        model.add(Dropout(0.1))
+
+    # First fully connected layer.
+    model.add(Flatten())
+    model.add(Dense(2048))
+    model.add(keras.layers.LeakyReLU())
+
+    # Third batch normalization layer
+    model.add(BatchNormalization())
+
+    # Dropout layer for the first fully connected layer.
+    if dropout:
+        model.add(Dropout(0.5))
+
+    # Final fully connected layer. 1x4096 -> 1x200. Maps to class labels. Softmax activation to get probabilities.
+    model.add(Dense(200))
+    model.add(Activation('softmax'))
+
+    return model
 
 def create_miniCnn_model(input_shape, dropout=True):
     model = Sequential()
@@ -260,13 +297,14 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
 
     (train_generator, validation_generator) = get_datagen(data_aug, data_dir)
 
-    # Compute quantities required for feature-wise normalization
-    # (std, mean, and principal components if ZCA whitening is applied).
-    # train_generator.fit(x_train)
-
     now = time.strftime("%c")
     run_name = model_name + now
+    # tensorboard
     tensorbd = TensorBoard(log_dir='./logs/' + run_name, histogram_freq=0, batch_size=batch_size)
+    # best checkpoint
+    filepath = os.path.join(save_dir, model_name).join("weights.best.hdf5")
+    checkpoint = ModelCheckpoint(filepath, monitor='val_acc', verbose=1, save_best_only=True, mode='max')
+
     # record into local log
     history = model.fit_generator(
         train_generator,
@@ -275,10 +313,10 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
         validation_data=validation_generator,
         validation_steps=train_generator.n // train_generator.batch_size,
         workers=4,
-        callbacks=[tensorbd])
-
-    # persist the model history
-    save(history, os.path.join(save_dir, model_name))
+        callbacks=[tensorbd, checkpoint])
+    #
+    # # persist the model history
+    # save(history, os.path.join(save_dir, model_name))
 
     # Save model and weights
     if not os.path.isdir(save_dir):
