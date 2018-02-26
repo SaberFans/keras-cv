@@ -57,7 +57,7 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
                   optimizer=opti,
                   metrics=['accuracy', top_5_accuracy])
 
-    (train_generator, validation_generator) = get_datagen(data_aug, data_dir, img_width = img_width, img_height=img_height)
+    (train_generator, validation_generator) = get_datagen(data_aug, data_dir, img_width = img_width, img_height=img_height, batch_size= batch_size)
 
     now = time.strftime("%c")
     run_name = model_name + now
