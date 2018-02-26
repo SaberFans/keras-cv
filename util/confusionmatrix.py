@@ -34,27 +34,12 @@ def confu_matrix_gen(data_dir, validation_generator, model=None):
     #
     y_real = validation_generator.classes
     y_preds = model.predict_generator(validation_generator, verbose=0)
-    # # print('Predicted:', decode_predictions(preds))
     y_preds = np.argmax(y_preds, axis=1)
-
-    # # validation_generator.reset()
-    # # print (validation_generator.class_indices)
 
     print('real class:', y_real)
     print('predicted class:', y_preds)
-    # class_ind = validation_generator.class_indices
-    # print('class ind:', class_ind)
-    #
-    # # orderedKeys = OrderedDict(class_ind)
-    # # print('Predicted:', decode_predictions(preds, top=3)[0])
-    #
-    # values = class_ind.values()
-    # print('sorted values:', values)
 
     classes = 20
-    # y_preds = [0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7]
-    # y_real =  [0,1,3,3,4,5,6,7,0,1,3,3,4,5,6,7]
-
     y_preds_m = []
     y_real_m= []
     y_index = 0
