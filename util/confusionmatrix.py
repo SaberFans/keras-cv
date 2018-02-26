@@ -13,6 +13,7 @@ from keras import applications, models
 from keras.layers import np
 from keras.metrics import top_k_categorical_accuracy
 from keras.preprocessing.image import ImageDataGenerator
+from sklearn.metrics import confusion_matrix
 
 from datasets.tiny_imagenet import *
 
@@ -25,53 +26,52 @@ sample_size = 100000
 validation_sample_size = 10000
 save_dir = os.path.join(os.getcwd(), '../saved_models/miniCnn')
 
-def confu_matrix_gen(data_dir, img_width, img_height, model=None):
-    if model ==None:
-        model = applications.ResNet50(weights=None, input_shape=(img_width, img_height, 3), classes=2)
-    test_datagen = ImageDataGenerator(rescale=1. / 255)
+img_width = 128
+img_height = 128
 
-    validation_generator = test_datagen.flow_from_directory(
-        data_dir + '/val',
-        target_size=(img_width, img_height),
-        batch_size=1,
-        class_mode='categorical',
-        shuffle=False)
-
-    preds = model.predict_generator(validation_generator, verbose=0)
-    print('predictions:', np.argmax(preds, axis=1))
+def confu_matrix_gen(data_dir, validation_generator, model=None):
+    # if model ==None:
+    #     model = applications.ResNet50(weights=None, input_shape=(img_width, img_height, 3), classes=2)
     #
-    # print('Predicted:', decode_predictions(preds))
-    # validation_generator.reset()
-    # print (validation_generator.class_indices)
-
     y_real = validation_generator.classes
+    y_preds = model.predict_generator(validation_generator, verbose=0)
+    # # print('Predicted:', decode_predictions(preds))
+    y_preds = np.argmax(y_preds, axis=1)
+
+    # # validation_generator.reset()
+    # # print (validation_generator.class_indices)
 
     print('real class:', y_real)
-    class_ind = validation_generator.class_indices
-    print('class ind:', class_ind)
-
-    class_ind = {'a':1, 'a2':2, 'a0': 3, 'b': 4}
-    # orderedKeys = OrderedDict(class_ind)
-    # print('Predicted:', decode_predictions(preds, top=3)[0])
-
-
-    values = class_ind.values()
-    print('sorted values:', values)
-
-
-
+    print('predicted class:', y_preds)
+    # class_ind = validation_generator.class_indices
+    # print('class ind:', class_ind)
     #
-    # cnf_matrix = confusion_matrix(y_real, preds)
-    # print(cnf_matrix)
+    # # orderedKeys = OrderedDict(class_ind)
+    # # print('Predicted:', decode_predictions(preds, top=3)[0])
     #
-    # plot_confusion_matrix(cnf_matrix, classes=keys)
+    # values = class_ind.values()
+    # print('sorted values:', values)
+
+    classes = 20
+    # y_preds = [0,1,2,3,4,5,6,7,0,1,2,3,4,5,6,7]
+    # y_real =  [0,1,3,3,4,5,6,7,0,1,3,3,4,5,6,7]
+
+    y_preds_m = []
+    y_real_m= []
+    y_index = 0
+    for i, j in zip(y_preds, y_real):
+        if i<classes and j<classes:
+            y_preds_m.append(i)
+            y_real_m.append(j)
+
+
+    cnf_matrix = confusion_matrix(y_real_m, y_preds_m)
+    print('----------confusion matrix--------')
+    print(cnf_matrix)
+
+    # labels = np.arange(classes)
+    # plot_confusion_matrix(cnf_matrix, classes=labels)
     # np.set_printoptions(precision=2)
-
-    # # Plot non-normalized confusion matrix
-    # plt.figure()
-    # plot_confusion_matrix(cnf_matrix, classes=labels,
-    #                       title='Confusion matrix, without normalization')
-
     # plt.show()
 
 def plot_confusion_matrix(cm, classes,
@@ -106,29 +106,21 @@ def plot_confusion_matrix(cm, classes,
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
 
+
 # load saved best checkpoint model
-# custom top 5 accuracy
-def top_5_accuracy(y_true, y_pred):
-    return top_k_categorical_accuracy(y_true, y_pred, k=5)
-custom_metric = top_5_accuracy
+# # custom top 5 accuracy
+# def top_5_accuracy(y_true, y_pred):
+#     return top_k_categorical_accuracy(y_true, y_pred, k=5)
+# custom_metric = top_5_accuracy
+# print('---------loading existing pre-trained model---------')
+# model = models.load_model(os.path.join(save_dir, 'miniCnn.h5'), custom_objects={'top_5_accuracy':custom_metric})
+
+
 test_datagen = ImageDataGenerator(rescale=1. / 255)
 validation_generator = test_datagen.flow_from_directory(
         '../data/val',
-        target_size=(128, 128),
+        target_size=(img_height, img_width),
         batch_size=1,
         class_mode='categorical',
         shuffle=False)
-
-print('---------loading existing pre-trained model---------')
-model = models.load_model(os.path.join(save_dir, 'miniCnn.h5'), custom_objects={'top_5_accuracy':custom_metric})
-# Score trained model.
-score = model.evaluate_generator(
-    validation_generator,
-    steps=validation_generator.n // validation_generator.batch_size,
-    workers=4)
-
-print(score)
-print('Test loss:', score[0])
-print('Test accuracy:', score[1])
-
-# confu_matrix_gen('../data', 197, 197)
+confu_matrix_gen('../data', validation_generator)
