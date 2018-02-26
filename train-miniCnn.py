@@ -44,7 +44,8 @@ def train(data_dir, opti, model_name, data_aug=True, lossfunc='categorical_cross
         return top_k_categorical_accuracy(y_true, y_pred, k=5)
     custom_metric = top_5_accuracy
     assert (model is not None), 'model_name is empty, define the one you want to run!'
-    if os.path.isfile(save_dir.join(model_name)+'.h5'):
+    print(os.path.join(save_dir,model_name+'.h5'))
+    if os.path.isfile( os.path.join(save_dir, model_name+'.h5')):
         print('---------loading existing pre-trained model---------')
         model = models.load_model(os.path.join(save_dir, model_name)+'.h5',
                                   custom_objects={'top_5_accuracy': custom_metric})
